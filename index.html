@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>《乱世拼将》· 三国版</title>
+<style>
+/* 《乱世拼将》· 三国版 —— style.css（色值依任务书 §1 锁死） */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #F7F1E5; color: #1A1A1A; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+.wrap { max-width: 560px; margin: 0 auto; padding: 16px 14px 48px; }
+.hidden { display: none !important; }
+.progress { text-align: center; font-size: 12px; color: #8a7f6a; padding: 6px 0 12px; letter-spacing: 1px; }
+.card { background: #FFFFFF; border-radius: 14px; padding: 20px 18px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(26,26,26,.06); }
+h2 { font-size: 19px; margin-bottom: 8px; }
+h3 { font-size: 15px; margin-bottom: 8px; }
+.hint { font-size: 13px; color: #8a7f6a; margin-bottom: 12px; }
+.btn-primary { background: linear-gradient(135deg,#FF6A2B,#E62B1E); color: #fff; border: none; border-radius: 10px; padding: 12px 18px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.btn-big { padding: 15px 18px; font-size: 17px; }
+.btn-ghost { background: #fff; color: #1A1A1A; border: 1.5px solid #d8cfbc; border-radius: 10px; padding: 10px 14px; font-size: 14px; cursor: pointer; }
+.btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
+.btn-ghost.on { border-color: #E62B1E; color: #E62B1E; background: #fff5ef; font-weight: 700; }
+
+/* 首页 */
+.hero { text-align: center; padding: 38px 20px 30px; }
+.hero-title { font-size: 34px; font-weight: 900; letter-spacing: 2px; }
+.hero-sub { font-size: 11px; color: #8a7f6a; letter-spacing: 2px; margin: 10px 0 18px; }
+.hero-tag { font-size: 15px; line-height: 1.7; margin-bottom: 24px; }
+.hero-note { font-size: 12px; color: #8a7f6a; margin-top: 14px; }
+.byline { text-align: center; font-size: 12px; color: #8a7f6a; letter-spacing: 1px; margin-top: 10px; }
+
+/* 设定卡片 */
+.card-list { display: flex; flex-direction: column; gap: 10px; }
+.pick-card { text-align: left; background: #fdfaf3; border: 2px solid #e7ddc8; border-radius: 12px; padding: 13px 14px; cursor: pointer; width: 100%; }
+.pick-card.active { border-color: #E62B1E; background: #fff5ef; }
+.pick-name { font-size: 16px; font-weight: 800; }
+.pick-desc { font-size: 13px; color: #6d6350; margin-top: 3px; line-height: 1.5; }
+#btn-to-draft { margin-top: 2px; }
+
+/* 夺技 */
+.draft-head { display: flex; justify-content: space-between; align-items: baseline; }
+.draft-count { font-size: 13px; color: #8a7f6a; }
+.faction-name { font-size: 15px; font-weight: 700; margin: 8px 0 10px; }
+.people-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.person-card { text-align: left; background: #fdfaf3; border: 2px solid #e7ddc8; border-radius: 12px; padding: 12px; cursor: pointer; }
+.person-card.active { border-color: #E62B1E; background: #fff5ef; }
+.person-card.tier-top { border-color: #C9A227; background: #fffbe8; }
+.person-name { font-size: 17px; font-weight: 800; }
+.person-meta { font-size: 12px; color: #6d6350; margin-top: 2px; }
+.attr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.attr-btn { background: #fdfaf3; border: 1.5px solid #e7ddc8; border-radius: 10px; padding: 9px 4px; cursor: pointer; text-align: center; }
+.attr-btn:disabled { opacity: .35; cursor: not-allowed; }
+.attr-btn .a-name { font-size: 12px; color: #6d6350; }
+.attr-btn .a-val { font-size: 18px; font-weight: 800; }
+.attr-btn .a-val.warn { color: #E62B1E; }
+.mine-panel { margin: 10px 0 14px; background: #fdfaf3; border: 1.5px dashed #d8cfbc; border-radius: 12px; padding: 12px; }
+.mine-title { font-size: 13px; font-weight: 700; color: #6d6350; }
+.mine-panel .attr-grid { margin-top: 8px; }
+.attr-cell.empty { opacity: .45; }
+.draft-foot { margin-top: 14px; }
+.locked-line { margin-top: 12px; font-size: 12.5px; color: #6d6350; line-height: 1.8; }
+
+/* 揭幕 */
+.unveil-title { font-size: 28px; font-weight: 900; text-align: center; margin: 8px 0 4px; }
+.unveil-lines { text-align: center; font-size: 14px; color: #6d6350; line-height: 1.9; margin-bottom: 8px; }
+.unveil-lines b { color: #E62B1E; }
+.attr-cell { background: #fdfaf3; border: 1.5px solid #e7ddc8; border-radius: 10px; padding: 9px 4px; text-align: center; }
+.attr-cell .a-name { font-size: 12px; color: #6d6350; }
+.attr-cell .a-val { font-size: 18px; font-weight: 800; }
+#btn-to-chapters { margin-top: 16px; }
+
+/* 章节 */
+.resbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.resbar .res { background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700; box-shadow: 0 1px 4px rgba(26,26,26,.06); }
+.resbar .res.warn { color: #E62B1E; }
+.ch-head { display: flex; align-items: baseline; gap: 10px; }
+.ch-head span { font-size: 13px; color: #8a7f6a; }
+.ch-brief { font-size: 15px; line-height: 1.7; margin: 8px 0 14px; }
+.ch-brief .deduct { display: block; font-size: 12.5px; color: #8a7f6a; margin-top: 6px; }
+.opt-list { display: flex; flex-direction: column; gap: 10px; }
+.opt-btn { text-align: left; background: #fdfaf3; border: 2px solid #e7ddc8; border-radius: 12px; padding: 13px 14px; cursor: pointer; font-size: 15px; width: 100%; }
+.opt-btn:hover { border-color: #FF6A2B; }
+.opt-btn .opt-sub { display: block; font-size: 12.5px; color: #8a7f6a; margin-top: 4px; }
+.ch-result { margin-top: 6px; font-size: 15px; line-height: 1.7; }
+.ch-result .r-head { font-weight: 800; margin-bottom: 6px; }
+.ch-result .r-bio { color: #4c4433; }
+.ch-result .r-after { font-size: 13px; color: #8a7f6a; margin: 8px 0 12px; }
+.biog-list p { font-size: 13.5px; line-height: 1.75; color: #4c4433; margin-bottom: 4px; }
+.biog-list p b { color: #1A1A1A; }
+
+/* 结局 */
+.ending-card { text-align: center; padding: 30px 20px; }
+.ending-name { font-size: 30px; font-weight: 900; }
+.ending-quote { font-size: 15px; color: #6d6350; margin: 10px 0 4px; }
+.ending-stats { font-size: 14px; line-height: 2; color: #4c4433; margin: 10px 0; }
+.ending-score { font-size: 21px; font-weight: 900; color: #E62B1E; margin-bottom: 18px; }
+
+/* 海报 */
+.poster { padding: 26px 20px; }
+.poster-head { font-size: 20px; font-weight: 900; text-align: center; letter-spacing: 1px; }
+.poster-sub { text-align: center; font-size: 13px; color: #6d6350; margin: 10px 0 16px; line-height: 1.8; }
+.poster-body p { font-size: 14.5px; line-height: 1.85; margin-bottom: 7px; }
+.poster-ending { font-size: 16px; font-weight: 800; margin-top: 14px; }
+.poster-score { font-size: 19px; font-weight: 900; color: #E62B1E; margin-top: 6px; }
+.poster-share { font-size: 12.5px; color: #8a7f6a; background: #fdfaf3; border-radius: 10px; padding: 10px 12px; margin-top: 16px; line-height: 1.7; }
+.poster-actions { display: flex; gap: 10px; margin-top: 14px; }
+.poster-actions .btn-primary { flex: 1.4; }
+.poster-actions .btn-ghost { flex: 1; }
+.copied { text-align: center; font-size: 13px; color: #E62B1E; margin-top: 10px; }
+
+/* v2：评级与战报分段 */
+.grade { display: inline-block; font-size: 10px; font-weight: 800; color: #E62B1E; background: #fff0e8; border-radius: 5px; padding: 1px 5px; margin-left: 4px; vertical-align: 2px; }
+.a-grade { font-size: 10.5px; font-weight: 800; color: #E62B1E; }
+.person-top { font-size: 12px; color: #4c4433; margin-top: 5px; line-height: 1.6; }
+.opt-preview { display: block; font-size: 12px; color: #4c4433; margin-top: 4px; }
+.ch-checks { display: block; font-size: 12.5px; color: #6d6350; margin-top: 6px; }
+.reveal { opacity: 0; transform: translateY(4px); transition: opacity .35s ease, transform .35s ease; }
+.reveal.on { opacity: 1; transform: none; }
+
+/* 事件弹窗 */
+.modal { position: fixed; inset: 0; background: rgba(26,26,26,.45); display: flex; align-items: center; justify-content: center; padding: 18px; z-index: 50; }
+.modal-inner { background: #fff; border-radius: 16px; padding: 22px 18px; max-width: 520px; width: 100%; max-height: 86vh; overflow-y: auto; }
+.modal-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+.ev-story { font-size: 14.5px; line-height: 1.75; }
+.ev-focus { font-size: 13px; color: #8a7f6a; margin: 8px 0 14px; }
+.ev-result { font-size: 14.5px; line-height: 1.75; white-space: pre-line; }
+#btn-ev-close { margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="progress" id="progress">《乱世拼将》</div>
+
+  <!-- 首页 -->
+  <section id="screen-home" class="screen">
+    <div class="card hero">
+      <h1 class="hero-title">《乱世拼将》</h1>
+      <div class="hero-sub">SANGUO PUZZLE GENERAL · 拼一个你出来</div>
+      <p class="hero-tag">从吕布、诸葛亮、曹操身上夺走 12 项本事，拼到一个无名之辈身上——本事大过命格，看你撑不撑得住。</p>
+      <button class="btn-primary btn-big" id="btn-start">⚔️ 开始拼将</button>
+      <div class="hero-note">历史爱好者自制小游戏，非官方 · 单局约 10 分钟</div>
+      <div class="byline">作者：lpy</div>
+    </div>
+  </section>
+
+  <!-- 设定：路线 + 出身 -->
+  <section id="screen-setup" class="screen hidden">
+    <div class="card">
+      <h2>一、选你的路线</h2>
+      <p class="hint">路线决定夺技时的衰减与霸业值权重。</p>
+      <div id="route-list" class="card-list"></div>
+    </div>
+    <div class="card">
+      <h2>二、选你的出身</h2>
+      <p class="hint">出身给你初始修正与二级数值起点。</p>
+      <div id="origin-list" class="card-list"></div>
+    </div>
+    <button class="btn-primary btn-big" id="btn-to-draft" disabled>开始夺技 →</button>
+  </section>
+
+  <!-- 夺技 -->
+  <section id="screen-draft" class="screen hidden">
+    <div class="card">
+      <div class="draft-head">
+        <h2 id="draft-title">夺技</h2>
+        <div class="draft-count" id="draft-count">已夺 0 / 12</div>
+      </div>
+      <div id="draft-mine" class="mine-panel"></div>
+      <div id="draft-stage"></div>
+      <div class="draft-foot">
+        <button class="btn-ghost" id="btn-swap">🔀 换一批（剩 3 次）</button>
+      </div>
+      <div id="draft-locked" class="locked-line"></div>
+    </div>
+  </section>
+
+  <!-- 揭幕 -->
+  <section id="screen-unveil" class="screen hidden">
+    <div class="card">
+      <h2>拼将完成</h2>
+      <div class="unveil-title" id="unveil-title"></div>
+      <div class="unveil-lines" id="unveil-lines"></div>
+      <div class="attr-grid" id="unveil-attrs"></div>
+      <button class="btn-primary btn-big" id="btn-to-chapters">投身乱世 · 开始十二章 →</button>
+    </div>
+  </section>
+
+  <!-- 章节 -->
+  <section id="screen-chapter" class="screen hidden">
+    <div class="resbar" id="ch-resbar"></div>
+    <div class="card">
+      <div class="ch-head"><span id="ch-num"></span><h2 id="ch-name"></h2></div>
+      <p class="ch-brief" id="ch-brief"></p>
+      <button class="btn-ghost hidden" id="btn-gamble" style="width:100%; margin-bottom:10px;"></button>
+      <div id="ch-options" class="opt-list"></div>
+      <div id="ch-result" class="ch-result hidden">
+        <div id="ch-result-text"></div>
+        <button class="btn-primary" id="btn-chapter-next">继续 →</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>此人列传（已写）</h3>
+      <div id="ch-biogs" class="biog-list"></div>
+    </div>
+  </section>
+
+  <!-- 结局 -->
+  <section id="screen-ending" class="screen hidden">
+    <div class="card ending-card">
+      <div class="ending-name" id="ending-name"></div>
+      <div class="ending-quote" id="ending-quote"></div>
+      <div class="ending-stats" id="ending-stats"></div>
+      <div class="ending-score" id="ending-score"></div>
+      <button class="btn-primary btn-big" id="btn-to-poster">看《此人列传》→</button>
+    </div>
+  </section>
+
+  <!-- 海报 -->
+  <section id="screen-poster" class="screen hidden">
+    <div class="card poster">
+      <div class="poster-head">《乱世拼将》· 此人列传</div>
+      <div class="poster-sub" id="poster-sub"></div>
+      <div class="poster-body" id="poster-biogs"></div>
+      <div class="poster-ending" id="poster-ending"></div>
+      <div class="poster-score" id="poster-score"></div>
+      <div class="poster-share" id="poster-share"></div>
+      <div class="poster-actions">
+        <button class="btn-primary" id="btn-copy">复制发帖文案</button>
+        <button class="btn-ghost" id="btn-restart">再拼一个</button>
+      </div>
+      <div class="copied hidden" id="poster-copied">已复制 ✓</div>
+      <div class="byline">作者：lpy</div>
+    </div>
+  </section>
+</div>
+
+<!-- 事件弹窗 -->
+<div id="event-modal" class="modal hidden">
+  <div class="modal-inner">
+    <div class="modal-title" id="ev-title"></div>
+    <p class="ev-story" id="ev-story"></p>
+    <p class="ev-focus" id="ev-focus"></p>
+    <div id="ev-options" class="opt-list"></div>
+    <div id="ev-result" class="ev-result hidden"></div>
+    <button class="btn-primary hidden" id="btn-ev-close">继续 →</button>
+  </div>
+</div>
+
+<script>
+/* 《乱世拼将》· 三国版 —— data.js
+ * 依《三国版设计表 v1.0》与《开发任务书 v1.1》实现。
+ * 纯静态、零框架、零后端、无存档。 */
+
+/* ---------- 属性（任务书 §2.1，键名固定） ---------- */
+const ATTR_KEYS = ['might','cavalry','archery','physique','command','tactics','intellect','insight','politics','literature','charisma','nerve'];
+const ATTR_NAMES = { might:'武力', cavalry:'骑战', archery:'射术', physique:'体魄', command:'统率', tactics:'兵法', intellect:'智谋', insight:'洞察', politics:'政略', literature:'文采', charisma:'魅力', nerve:'胆识' };
+
+/* ---------- 路线（顺序即相邻序，任务书 §2.3） ---------- */
+const ROUTE_ORDER = ['猛将','统帅','谋士','治世','枭雄'];
+
+/* ---------- 路线模板（任务书 §2.2） ---------- */
+const ROUTE_TEMPLATES = {
+  '猛将': { might:88, cavalry:78, archery:66, physique:84, command:62, tactics:55, intellect:48, insight:50, politics:42, literature:40, charisma:58, nerve:80 },
+  '统帅': { might:72, cavalry:70, archery:58, physique:70, command:88, tactics:82, intellect:66, insight:68, politics:60, literature:52, charisma:66, nerve:74 },
+  '谋士': { might:42, cavalry:48, archery:45, physique:52, command:62, tactics:78, intellect:90, insight:84, politics:72, literature:76, charisma:64, nerve:62 },
+  '治世': { might:48, cavalry:50, archery:46, physique:58, command:66, tactics:58, intellect:70, insight:72, politics:88, literature:80, charisma:74, nerve:60 },
+  '枭雄': { might:66, cavalry:62, archery:55, physique:64, command:76, tactics:70, intellect:78, insight:76, politics:72, literature:60, charisma:86, nerve:84 }
+};
+
+/* ---------- 霸业值权重（设计表 §4，照抄） ---------- */
+const ROUTE_WEIGHTS = {
+  '猛将': { might:.18, cavalry:.12, archery:.08, physique:.14, command:.10, tactics:.06, intellect:.04, insight:.04, politics:.03, literature:.03, charisma:.06, nerve:.12 },
+  '统帅': { might:.10, cavalry:.06, archery:.03, physique:.06, command:.18, tactics:.14, intellect:.10, insight:.08, politics:.06, literature:.03, charisma:.06, nerve:.10 },
+  '谋士': { might:.02, cavalry:.04, archery:.04, physique:.04, command:.06, tactics:.12, intellect:.18, insight:.14, politics:.10, literature:.10, charisma:.08, nerve:.08 },
+  '治世': { might:.04, cavalry:.04, archery:.04, physique:.06, command:.08, tactics:.06, intellect:.10, insight:.10, politics:.18, literature:.12, charisma:.12, nerve:.06 },
+  '枭雄': { might:.08, cavalry:.02, archery:.02, physique:.04, command:.12, tactics:.08, intellect:.12, insight:.10, politics:.10, literature:.04, charisma:.14, nerve:.14 }
+};
+
+/* ---------- 档位修正（任务书 §1；v3 扩为五档稀有度 S/A/B/C/D） ---------- */
+const TIER_MOD = { S:10, A:6, B:2, C:-3, D:-6 };
+
+/* ---------- 稀有度（v3 人物阶级）：标签 + 抽取权重 ----------
+ * 全库 90 人、每阵营 15 人，严格单调金字塔（越往下人越多）：
+ *   S 8 · A 13 · B 19 · C 23 · D 27
+ *   曹魏 S2 A2 B3 C3 D5｜蜀汉 S2 A2 B3 C4 D4｜孙吴 S2 A2 B3 C4 D4
+ *   西凉 S2 A3 B3 C4 D3｜河北 S0 A2 B4 C4 D5｜荆扬 S0 A2 B3 C4 D6
+ * 抽取权重：S 最低（最难出）、D 最高：S 1 / A 3 / B 6 / C 10 / D 15。 */
+const RARITY_LABEL = { S:'S 级', A:'A 级', B:'B 级', C:'C 级', D:'D 级' };
+const TIER_WEIGHT = { S:1, A:3, B:6, C:10, D:15 };
+
+/* 人物数值生成：模板 + 档位 + 绝活 +6，钳 40–99 */
+function genPlayerAttr(route, tier, special) {
+  const tpl = ROUTE_TEMPLATES[route];
+  const out = {};
+  for (const k of ATTR_KEYS) {
+    let v = tpl[k] + (TIER_MOD[tier] || 0);
+    if (k === special) v += 6;
+    out[k] = Math.max(40, Math.min(99, v));
+  }
+  return out;
+}
+
+/* 跨路线衰减（任务书 §2.3）：按序距离 0/1/2/≥3 → 1.00/0.95/0.90/0.85 */
+function routeDecay(fromRoute, toRoute) {
+  const d = Math.abs(ROUTE_ORDER.indexOf(fromRoute) - ROUTE_ORDER.indexOf(toRoute));
+  return d === 0 ? 1.00 : d === 1 ? 0.95 : d === 2 ? 0.90 : 0.85;
+}
+
+/* 属性评级（v2 新增展示口径：SS+ ~ C-） */
+function attrGrade(v) {
+  if (v >= 97) return 'SS+'; if (v >= 94) return 'SS'; if (v >= 91) return 'SS-';
+  if (v >= 88) return 'S+';  if (v >= 85) return 'S';  if (v >= 82) return 'S-';
+  if (v >= 79) return 'A+';  if (v >= 76) return 'A';  if (v >= 73) return 'A-';
+  if (v >= 70) return 'B+';  if (v >= 66) return 'B';  if (v >= 62) return 'B-';
+  if (v >= 58) return 'C+';  if (v >= 54) return 'C';  return 'C-';
+}
+
+/* 霸业值（加权，取整） */
+function computeOVR(route, attrs) {
+  const w = ROUTE_WEIGHTS[route];
+  let s = 0;
+  for (const k of ATTR_KEYS) s += w[k] * attrs[k];
+  return Math.round(s);
+}
+
+/* ---------- 势力与人物（任务书 §2.5；v3 扩充：每阵营 15 人、全库 90 人） ----------
+ * 档位按稀有度金字塔定档（见 TIER_WEIGHT 处配额表）：S 8 · A 13 · B 19 · C 23 · D 27。
+ * 熟知角色绝活拉满：诸葛亮智谋 99、吕布/关羽武力 99、张飞绝活武力（A 档 +6 后钳 99）、
+ * 周瑜统率 99 而智谋次于诸葛亮；华雄保持 C 档绝活武力 = 91（定版基准，不动）。
+ * 低档放入大量较弱人物（刘禅、马谡、蒋干、淳于琼、孙皓之流）。 */
+const FACTIONS = [
+  { name:'曹魏', people:[ /* S2 A2 B3 C3 D5 */
+    { name:'曹操', route:'枭雄', tier:'S', special:'nerve' },
+    { name:'郭嘉', route:'谋士', tier:'S', special:'intellect' },
+    { name:'司马懿', route:'谋士', tier:'A', special:'insight' },
+    { name:'张辽', route:'统帅', tier:'A', special:'command' },
+    { name:'夏侯惇', route:'猛将', tier:'B', special:'might' },
+    { name:'荀彧', route:'治世', tier:'B', special:'politics' },
+    { name:'徐晃', route:'猛将', tier:'B', special:'might' },
+    { name:'夏侯渊', route:'猛将', tier:'C', special:'cavalry' },
+    { name:'荀攸', route:'谋士', tier:'C', special:'tactics' },
+    { name:'许褚', route:'猛将', tier:'C', special:'might' },
+    { name:'曹仁', route:'统帅', tier:'D', special:'command' },
+    { name:'臧霸', route:'猛将', tier:'D', special:'might' },
+    { name:'蒋干', route:'谋士', tier:'D', special:'literature' },
+    { name:'于禁', route:'统帅', tier:'D', special:'command' },
+    { name:'夏侯楙', route:'统帅', tier:'D', special:'command' } ] },
+  { name:'蜀汉', people:[ /* S2 A2 B3 C4 D4 */
+    { name:'诸葛亮', route:'谋士', tier:'S', special:'intellect' },
+    { name:'关羽', route:'猛将', tier:'S', special:'might' },
+    { name:'张飞', route:'猛将', tier:'A', special:'might' },
+    { name:'赵云', route:'猛将', tier:'A', special:'cavalry' },
+    { name:'刘备', route:'枭雄', tier:'B', special:'charisma' },
+    { name:'庞统', route:'谋士', tier:'B', special:'intellect' },
+    { name:'黄忠', route:'猛将', tier:'B', special:'archery' },
+    { name:'魏延', route:'猛将', tier:'C', special:'might' },
+    { name:'法正', route:'谋士', tier:'C', special:'tactics' },
+    { name:'马良', route:'治世', tier:'C', special:'literature' },
+    { name:'姜维', route:'统帅', tier:'C', special:'tactics' },
+    { name:'王平', route:'统帅', tier:'D', special:'command' },
+    { name:'糜竺', route:'治世', tier:'D', special:'charisma' },
+    { name:'马谡', route:'谋士', tier:'D', special:'tactics' },
+    { name:'刘禅', route:'治世', tier:'D', special:'charisma' } ] },
+  { name:'孙吴', people:[ /* S2 A2 B3 C4 D4 */
+    { name:'周瑜', route:'统帅', tier:'S', special:'command' },
+    { name:'陆逊', route:'谋士', tier:'S', special:'tactics' },
+    { name:'孙策', route:'猛将', tier:'A', special:'nerve' },
+    { name:'孙权', route:'治世', tier:'A', special:'politics' },
+    { name:'太史慈', route:'猛将', tier:'B', special:'archery' },
+    { name:'吕蒙', route:'统帅', tier:'B', special:'tactics' },
+    { name:'鲁肃', route:'治世', tier:'B', special:'politics' },
+    { name:'孙坚', route:'猛将', tier:'C', special:'nerve' },
+    { name:'甘宁', route:'猛将', tier:'C', special:'might' },
+    { name:'程普', route:'统帅', tier:'C', special:'command' },
+    { name:'黄盖', route:'猛将', tier:'C', special:'nerve' },
+    { name:'韩当', route:'猛将', tier:'D', special:'archery' },
+    { name:'朱然', route:'统帅', tier:'D', special:'command' },
+    { name:'顾雍', route:'治世', tier:'D', special:'politics' },
+    { name:'孙皓', route:'枭雄', tier:'D', special:'charisma' } ] },
+  { name:'西凉', people:[ /* S2 A3 B3 C4 D3 */
+    { name:'吕布', route:'猛将', tier:'S', special:'might' },
+    { name:'贾诩', route:'谋士', tier:'S', special:'insight' },
+    { name:'马超', route:'猛将', tier:'A', special:'cavalry' },
+    { name:'董卓', route:'枭雄', tier:'A', special:'nerve' },
+    { name:'庞德', route:'猛将', tier:'A', special:'might' },
+    { name:'马腾', route:'统帅', tier:'B', special:'command' },
+    { name:'张绣', route:'猛将', tier:'B', special:'cavalry' },
+    { name:'徐荣', route:'统帅', tier:'B', special:'tactics' },
+    { name:'华雄', route:'猛将', tier:'C', special:'might' },
+    { name:'李傕', route:'枭雄', tier:'C', special:'nerve' },
+    { name:'郭汜', route:'猛将', tier:'C', special:'might' },
+    { name:'韩遂', route:'枭雄', tier:'C', special:'politics' },
+    { name:'樊稠', route:'猛将', tier:'D', special:'might' },
+    { name:'牛辅', route:'统帅', tier:'D', special:'command' },
+    { name:'胡轸', route:'猛将', tier:'D', special:'might' } ] },
+  { name:'河北', people:[ /* S0 A2 B4 C4 D5 */
+    { name:'沮授', route:'谋士', tier:'A', special:'tactics' },
+    { name:'田丰', route:'治世', tier:'A', special:'politics' },
+    { name:'袁绍', route:'枭雄', tier:'B', special:'charisma' },
+    { name:'颜良', route:'猛将', tier:'B', special:'might' },
+    { name:'文丑', route:'猛将', tier:'B', special:'might' },
+    { name:'审配', route:'谋士', tier:'B', special:'nerve' },
+    { name:'高览', route:'猛将', tier:'C', special:'might' },
+    { name:'鞠义', route:'统帅', tier:'C', special:'command' },
+    { name:'逢纪', route:'谋士', tier:'C', special:'insight' },
+    { name:'许攸', route:'谋士', tier:'C', special:'insight' },
+    { name:'淳于琼', route:'统帅', tier:'D', special:'command' },
+    { name:'郭图', route:'谋士', tier:'D', special:'politics' },
+    { name:'辛评', route:'谋士', tier:'D', special:'literature' },
+    { name:'袁谭', route:'枭雄', tier:'D', special:'charisma' },
+    { name:'袁尚', route:'枭雄', tier:'D', special:'charisma' } ] },
+  { name:'荆扬', people:[ /* S0 A2 B3 C4 D6 */
+    { name:'司马徽', route:'谋士', tier:'A', special:'insight' },
+    { name:'刘表', route:'治世', tier:'A', special:'literature' },
+    { name:'文聘', route:'统帅', tier:'B', special:'command' },
+    { name:'蒯越', route:'谋士', tier:'B', special:'tactics' },
+    { name:'袁术', route:'枭雄', tier:'B', special:'charisma' },
+    { name:'黄祖', route:'统帅', tier:'C', special:'nerve' },
+    { name:'王粲', route:'治世', tier:'C', special:'literature' },
+    { name:'纪灵', route:'猛将', tier:'C', special:'might' },
+    { name:'蒯良', route:'谋士', tier:'C', special:'politics' },
+    { name:'蔡瑁', route:'统帅', tier:'D', special:'politics' },
+    { name:'张勋', route:'猛将', tier:'D', special:'might' },
+    { name:'杨弘', route:'谋士', tier:'D', special:'politics' },
+    { name:'刘勋', route:'枭雄', tier:'D', special:'politics' },
+    { name:'雷薄', route:'猛将', tier:'D', special:'might' },
+    { name:'陈兰', route:'猛将', tier:'D', special:'might' } ] }
+];
+
+/* ---------- 出身（任务书 §2.6 / 设计表 §3） ---------- */
+const ORIGINS = [
+  { name:'寒门游侠', desc:'剑没离过手，就是没人认识你', initFix:{ might:4, nerve:2 }, initSec:{ fame:0, network:0 }, fameGrowBonus:true },
+  { name:'县衙小吏', desc:'公文写了十年，天下要乱了', initFix:{ politics:4, literature:2 }, initSec:{ fame:1 } },
+  { name:'世家庶子', desc:'族谱上有你，家宴上没你的座', initFix:{ literature:4, charisma:2 }, initSec:{ network:2 }, secGrowBonus:true },
+  { name:'黄巾降卒', desc:'造过反，降了，现在想往上爬', initFix:{ physique:4, might:2 }, initSec:{ fame:-1, ambition:1 } }
+];
+
+/* ---------- 二级数值（任务书 §2.7） ---------- */
+const SEC_KEYS = ['fame','network','loyalty','ambition','controversy'];
+const SEC_NAMES = { fame:'声望', network:'人脉', loyalty:'恩义', ambition:'野心', controversy:'争议' };
+
+/* ---------- 称号（设计表 §9：组合优先 → 武力最高 → 兜底） ---------- */
+const TITLE_PAIRS = [
+  { attrs:['might','nerve'], title:'万人敌' },
+  { attrs:['command','tactics'], title:'兵仙再世' },
+  { attrs:['intellect','insight'], title:'算无遗策' },
+  { attrs:['politics','literature'], title:'王佐之才' },
+  { attrs:['charisma','nerve'], title:'乱世枭雄' }
+];
+
+/* ---------- 十二章（任务书 §5，逐条照抄） ----------
+ * 选项：{ label, text, kind:'亲为'|'谋划'|'自保'|'站队'|'终局', check?, taunt?,
+ *         win:{effects,tier,bio}, lose:{effects,tier,bio}, fixed:{effects,tier,bio} } */
+const CHAPTERS = [
+  { n:1, name:'黄巾乱起', brief:'黄巾贼围了县城，城里能拿刀的不到三百人。', options:[
+    { label:'A', text:'率乡勇迎战', kind:'亲为', check:'might',
+      win:{ effects:{ troops:150, fame:2 }, tier:'大胜', bio:'黄巾围城，你率乡勇夜出，斩其渠帅，城中始知你名。' },
+      lose:{ effects:{ health:-8, troops:-100 }, tier:'败', bio:'初阵不利，你带伤退回城中，乡人摇头。' } },
+    { label:'B', text:'献守城策', kind:'谋划', check:'intellect',
+      win:{ effects:{ fame:1, loyalty:1 }, tier:'胜', bio:'你献守城三策，县令从之，城全。' },
+      lose:{ effects:{ fame:-1 }, tier:'僵持', bio:'你的策没人听，城还是守住了，只是与你无关。' } },
+    { label:'C', text:'闭门自守', kind:'自保',
+      fixed:{ effects:{ health:4 }, tier:'僵持', bio:'乱起之时，你闭门读书，枪声远了才出门。' } }
+  ]},
+  { n:2, name:'十常侍乱', brief:'何进召外兵入京，宫里先乱了。', options:[
+    { label:'A', text:'入京勤王', kind:'亲为', check:'nerve',
+      win:{ effects:{ fame:2, network:1 }, tier:'胜', bio:'宫变之夜，你带人守住宫门，天子记住了你的脸。' },
+      lose:{ effects:{ health:-6, controversy:1 }, tier:'败', bio:'勤王勤了个空，你的人在宫门口站了一夜。' } },
+    { label:'B', text:'结交近臣', kind:'谋划', check:'insight',
+      win:{ effects:{ network:2 }, tier:'胜', bio:'乱局之中你押对了人，从此宫里有你的耳目。' },
+      lose:{ effects:{ fame:-1 }, tier:'僵持', bio:'你结交的那位，三天后上了通缉名单。' } },
+    { label:'C', text:'远走避祸', kind:'自保',
+      fixed:{ effects:{ troops:50 }, tier:'僵持', bio:'京里杀人时，你在乡下练兵。' } }
+  ]},
+  { n:3, name:'董卓进京', brief:'董卓把持朝政，关东诸侯起兵讨董。站哪边，定后面三章的风。', noMerit:true, options:[
+    { label:'A', text:'投身讨董联军', kind:'站队',
+      fixed:{ effects:{ fame:1, flag:'antiDong' }, tier:null, bio:'你投身关东联军，盟主歃血时你站在队列之中。' } },
+    { label:'B', text:'投靠董卓', kind:'站队', taunt:true,
+      fixed:{ effects:{ troops:300, controversy:2, flag:'proDong' }, tier:null, bio:'你去了洛阳。董卓问你想要什么，你说：天下。' } },
+    { label:'C', text:'拥兵观望', kind:'站队',
+      fixed:{ effects:{ troops:100, flag:'neutral' }, tier:null, bio:'两边都给你写了信，你一封都没回。' } }
+  ]},
+  { n:4, name:'虎牢关前', brief:'吕布在关前连斩数将，联军无人敢出。', altBrief:'关前观战，吕布认出你。', options:[
+    { label:'A', text:'出阵战吕布', kind:'亲为', check:'might', scene:true,
+      win:{ effects:{ fame:3 }, tier:'大胜', bio:'虎牢关前，你与吕布战三十合不败，诸侯侧目。' },
+      lose:{ effects:{ health:-12 }, tier:'败', bio:'你只接了吕布三戟。能活着回来，已经够吹半辈子。' } },
+    { label:'B', text:'献疲敌之计', kind:'谋划', check:'tactics',
+      win:{ effects:{ fame:1 }, tier:'胜', bio:'你献昼夜轮攻之计，吕布三日没睡好觉。' },
+      lose:{ effects:{}, tier:'僵持', bio:'你的计排上了日程，排在所有人后面。' } },
+    { label:'C', text:'守营不出', kind:'自保',
+      fixed:{ effects:{}, tier:'僵持', bio:'虎牢关打得热闹，你在营里磨刀。' } }
+  ]},
+  { n:5, name:'群雄割据', brief:'联军散了，天下开始各过各的。', options:[
+    { label:'A', text:'自立门户', kind:'亲为', check:'charisma', taunt:true,
+      win:{ effects:{ troops:'recruit', fame:2, flag:'selfLord' }, tier:'大胜', bio:'你扯起自己的旗，旗下站了{兵马}人，旗上没有别人的姓。' },
+      lose:{ effects:{ fame:-2, controversy:1 }, tier:'败', bio:'你扯旗那天，风太大，旗没展开，人也散了。' } },
+    { label:'B', text:'择主而事', kind:'谋划', check:'insight',
+      win:{ effects:{ network:2, troops:200 }, tier:'胜', bio:'你挑的主公后来证明挑对了——至少这一年是对的。' },
+      lose:{ effects:{}, tier:'僵持', bio:'你投的那家，年底就散了。你又成了无主之人。' } },
+    { label:'C', text:'招兵买马', kind:'自保',
+      fixed:{ effects:{ troops:'recruit60' }, tier:'僵持', bio:'你不声不响，把兵练到了{兵马}。' } }
+  ]},
+  { n:6, name:'官渡风云', brief:'袁绍七十万压境，曹操的粮只够一个月。', options:[
+    { label:'A', text:'奇袭乌巢', kind:'亲为', check:'tactics',
+      win:{ effects:{ fame:3, troops:200 }, tier:'大胜', bio:'乌巢火起那夜，你在第一排。' },
+      lose:{ effects:{ health:-10, troops:-200 }, tier:'败', bio:'乌巢没烧成，你烧了自己的胡子。' } },
+    { label:'B', text:'固守待变', kind:'谋划', check:'command',
+      win:{ effects:{ troops:100 }, tier:'胜', bio:'相持三月，你的营盘是全军最稳的一个。' },
+      lose:{ effects:{ troops:-100 }, tier:'僵持', bio:'固守是守住了，就是守得有点无聊。' } },
+    { label:'C', text:'两面下注', kind:'自保', taunt:true,
+      fixed:{ effects:{ network:1, controversy:1 }, tier:'僵持', bio:'你给两边都送了礼。礼单后来成了你的名片。' } }
+  ]},
+  { n:7, name:'隆中访贤', brief:'听说有位高人，隐居隆中，号称能三分天下。', options:[
+    { label:'A', text:'三顾请高人', kind:'亲为', check:'charisma',
+      win:{ effects:{ perm:{ intellect:2 }, network:1 }, tier:'胜', bio:'你三顾茅庐请出的那个人，后来替你算了半辈子的账。' },
+      lose:{ effects:{ fame:-1 }, tier:'僵持', bio:'你去了三次，高人三次都不在家。第三次留了封信，信写得很好。' } },
+    { label:'B', text:'自著治世策', kind:'谋划', check:'literature',
+      win:{ effects:{ fame:2, perm:{ politics:1 } }, tier:'胜', bio:'你的治世策传抄诸郡，有人说写得比隆中对还清楚。' },
+      lose:{ effects:{}, tier:'僵持', bio:'你的策写完了，压在自己箱子底下。' } },
+    { label:'C', text:'按兵不动', kind:'自保',
+      fixed:{ effects:{ health:6 }, tier:'僵持', bio:'这一年你什么都没干，身体养好了。' } }
+  ]},
+  { n:8, name:'赤壁大火', brief:'曹操八十万下江南，东吴朝堂吵成一团，最终决定打。', options:[
+    { label:'A', text:'亲率火船', kind:'亲为', check:'nerve', taunt:true, scene:true,
+      win:{ effects:{ fame:3 }, tier:'大胜', bio:'赤壁火起，你的船是第一个撞进曹营的。' },
+      lose:{ effects:{ health:-12 }, tier:'败', bio:'你的火船烧早了。江上那把火，有一半是你的船。' } },
+    { label:'B', text:'献连环计', kind:'谋划', check:'intellect',
+      win:{ effects:{ fame:2 }, tier:'胜', bio:'连环计成没成史书没写，但你献策那晚，江风确实向东。' },
+      lose:{ effects:{ fame:-1 }, tier:'僵持', bio:'你的计被用了三分之一——最不重要的那部分。' } },
+    { label:'C', text:'隔岸观火', kind:'自保',
+      fixed:{ effects:{ troops:100 }, tier:'僵持', bio:'赤壁烧了一夜，你在对岸看完了全程，顺手收编了两千散兵。' } }
+  ]},
+  { n:9, name:'荆州变局', brief:'荆州成了三家都盯着的肥肉。', options:[
+    { label:'A', text:'趁乱夺城', kind:'亲为', check:'command',
+      win:{ effects:{ troops:400, fame:1 }, tier:'大胜', bio:'城门开的那一刻，你的人已经站在城楼上了。' },
+      lose:{ effects:{ troops:-250 }, tier:'败', bio:'城没夺下来，你的名字上了三家的通缉令——也算一种名声。' } },
+    { label:'B', text:'结盟守约', kind:'谋划', check:'politics',
+      win:{ effects:{ loyalty:2, network:1 }, tier:'胜', bio:'你守约的名声传出去，之后谈事，别人先信你三分。' },
+      lose:{ effects:{ loyalty:-1 }, tier:'僵持', bio:'盟约签了，墨还没干，对面就动了手。' } },
+    { label:'C', text:'回乡屯田', kind:'自保',
+      fixed:{ effects:{ troops:150, health:4 }, tier:'僵持', bio:'你在后方屯田，粮仓满了，人也胖了。' } }
+  ]},
+  { n:10, name:'汉中鏖战', brief:'汉中争夺到了见血的阶段，老将们都上了。', options:[
+    { label:'A', text:'登高督战', kind:'亲为', check:'command',
+      win:{ effects:{ fame:2, troops:200 }, tier:'大胜', bio:'你在高处立旗一整天，旗没倒，军心就没倒。' },
+      lose:{ effects:{ health:-8, troops:-150 }, tier:'败', bio:'那天的箭，有一支是冲着你的旗来的，偏了三寸。' } },
+    { label:'B', text:'断其粮道', kind:'谋划', check:'tactics',
+      win:{ effects:{ fame:2 }, tier:'胜', bio:'你断了对方的粮道。仗是饿赢的。' },
+      lose:{ effects:{}, tier:'僵持', bio:'粮道没断成，对方反而顺着你的路摸了过来。' } },
+    { label:'C', text:'坚壁清野', kind:'自保',
+      fixed:{ effects:{ troops:-50, health:4 }, tier:'僵持', bio:'你把营扎成了铁桶，仗打完了，铁桶还在。' } }
+  ]},
+  { n:11, name:'襄樊水涨', brief:'连日大雨，汉水暴涨，关羽的兵已经围了樊城。', options:[
+    { label:'A', text:'趁水攻城', kind:'亲为', check:'might',
+      win:{ effects:{ fame:2, troops:300 }, tier:'大胜', bio:'大水那夜，你踩着水进了城。' },
+      lose:{ effects:{ health:-10, troops:-200 }, tier:'败', bio:'水退之后，你的兵在泥里捞马。' } },
+    { label:'B', text:'筑堤自保', kind:'谋划', check:'insight',
+      win:{ effects:{ troops:100 }, tier:'胜', bio:'全军都在看水，你在筑堤。后来他们都来你的堤上躲水。' },
+      lose:{ effects:{ troops:-100 }, tier:'僵持', bio:'堤筑晚了半天。' } },
+    { label:'C', text:'坐观成败', kind:'自保',
+      fixed:{ effects:{ fame:1 }, tier:'僵持', bio:'这一局你没下场，但所有人都知道你在看。' } }
+  ]},
+  { n:12, name:'天下大势', brief:'天下分久必合。到了你表态的时候了。', noMerit:true, isFinal:true, options:[
+    { label:'A', text:'称王', kind:'终局', finalChoice:'wang', fixed:{ effects:{}, tier:null, bio:'你称王那天，旧部里有人哭了。' } },
+    { label:'B', text:'称臣', kind:'终局', finalChoice:'chen', fixed:{ effects:{}, tier:null, bio:'你把印绶交了上去，换回一座宅子和半世安稳。' } },
+    { label:'C', text:'归隐', kind:'终局', finalChoice:'guiyin', fixed:{ effects:{}, tier:null, bio:'你走的那天没人送，因为没人知道。' } }
+  ]}
+];
+
+/* 导出（供校验脚本读取；浏览器中即全局） */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { ATTR_KEYS, ATTR_NAMES, ROUTE_ORDER, ROUTE_TEMPLATES, ROUTE_WEIGHTS, TIER_MOD, RARITY_LABEL, TIER_WEIGHT, genPlayerAttr, routeDecay, computeOVR, attrGrade, FACTIONS, ORIGINS, SEC_KEYS, SEC_NAMES, TITLE_PAIRS, CHAPTERS };
+}
+</script>
+<script>
+/* 《乱世拼将》· 三国版 —— events.js
+ * 随机事件 8 个，依《开发任务书 v1.1》§6 全文照抄。
+ * 字段：id / title / story / focus / weight / options
+ * 选项：label / text / check(掷骰判定属性) / taunt / effects / result / win / lose */
+
+const EVENTS = [
+  { id:'E1', title:'夜遇故人', weight:50,
+    story:'败走的路上，你在破庙里遇到了当年一起投军的老兄弟，他断了一条腿，在讨饭。',
+    focus:'帮他，等于承认你也没混多好。',
+    options:[
+      { label:'A', text:'赠粮赠马', effects:{ fame:1, loyalty:2 }, result:'他拉着你的手哭了一场。后来你的军中多了条规矩：不弃伤兵。' },
+      { label:'B', text:'给点钱打发', effects:{ controversy:1 }, result:'他数了数钱，笑了笑，没说话。' },
+      { label:'C', text:'等我得了天下', taunt:true, effects:{}, result:'他愣了半天，说：你还是当年那个吹牛的样子。' }
+    ] },
+  { id:'E2', title:'盛名之下', weight:0,
+    story:'你的名气传得比本事快。一位成名已久的将领设宴「请教」，席间把剑拍在案上。',
+    focus:'这一关过不去，名声就是笑话。',
+    options:[
+      { label:'A', text:'席间比武', check:'might',
+        win:{ effects:{ fame:2 }, result:'三合之后他收剑回席，说：是我小看你了。' },
+        lose:{ effects:{ health:-8, fame:-1 }, result:'你输得不难看。但全场都看出来了。' } },
+      { label:'B', text:'坦然认怂', effects:{ fame:-1, controversy:-1 }, result:'你说：我就是个拼凑的。满座大笑，剑收回去了。' }
+    ] },
+  { id:'E3', title:'军中无粮', weight:50,
+    story:'粮道断了七天，营里开始杀马。',
+    focus:'马杀完，下一步是什么大家都清楚。',
+    options:[
+      { label:'A', text:'杀自己的马', effects:{ loyalty:2, troops:-50 }, result:'你的坐骑先下了锅。那晚没人抱怨。' },
+      { label:'B', text:'向百姓征粮', effects:{ troops:150, controversy:2, fame:-1 }, result:'粮有了。征粮队回来时，没人敢看百姓的眼睛。' },
+      { label:'C', text:'减半口粮硬撑', effects:{ health:-6, loyalty:1 }, result:'你把自己的饭分了三天。兵们看你的眼神变了。' }
+    ] },
+  { id:'E4', title:'白衣渡江', weight:50,
+    story:'盟友派来使者，锦盒里是盟书，盒底压着一张你方将领的名单。',
+    focus:'信，还是防？',
+    options:[
+      { label:'A', text:'当场扣下使者', check:'insight',
+        win:{ effects:{ fame:1, flag:'seenThrough' }, result:'使者招了。你连夜换了防。' },
+        lose:{ effects:{ loyalty:-2 }, result:'冤枉了人。盟书作废，两家从此有了心结。' } },
+      { label:'B', text:'照单全收', effects:{ network:1, flag:'betrayed' }, result:'你签了盟书，夸对方字写得好。' }
+    ] },
+  { id:'E5', title:'空城', weight:50,
+    story:'主力未归，对方前锋已经到了城下，你手边只有三百老弱。',
+    focus:'跑，城丢；赌，命悬。',
+    options:[
+      { label:'A', text:'大开城门抚琴', check:'nerve', scene:true,
+        win:{ effects:{ fame:3 }, result:'对方在城下站了一个时辰，退了。你琴弦断了一根。' },
+        lose:{ effects:{ health:-10, troops:-300 }, result:'对方没吃这一套。城破的时候，你在弹第二首。' } },
+      { label:'B', text:'弃城夜遁', effects:{ fame:-2, troops:-100 }, result:'城丢了，人活着。这笔账史书会慢慢算。' }
+    ] },
+  { id:'E6', title:'捷报与讣告', weight:50,
+    story:'大胜的捷报和老部下的讣告，同一匹马送到。',
+    focus:'赢了天下的人，未必赢得过这一夜。',
+    options:[
+      { label:'A', text:'厚葬并抚恤其家', effects:{ loyalty:2, fame:1 }, result:'葬礼那天，全军缟素。之后你的人，打仗不退了。' },
+      { label:'B', text:'简办，军情紧急', effects:{ troops:50 }, result:'你说了句『等打完再说』。这句话你记了很多年。' }
+    ] },
+  { id:'E7', title:'天子诏书', weight:50,
+    story:'一道诏书到了，内容是让你讨伐你现在的盟友。印是真的，意思也是真的。',
+    focus:'奉诏是忠，烧诏是义，矫诏是胆。',
+    options:[
+      { label:'A', text:'奉诏', effects:{ fame:1, loyalty:-2, flag:'imperial' }, result:'你接了诏。盟友的人头和你的名声，总得保一个。' },
+      { label:'B', text:'烧诏', effects:{ loyalty:2, controversy:1 }, result:'你在帐里烧了诏书，灰烬落了一案。' },
+      { label:'C', text:'留中不发', taunt:true, effects:{ network:1 }, result:'你对使者说：诏书？我没收到过。' }
+    ] },
+  { id:'E8', title:'江边老卒', weight:50,
+    story:'收兵回营的路上，一个老兵问你：「将军，我们到底图什么？」',
+    focus:'这个问题，比任何一场仗都难答。',
+    options:[
+      { label:'A', text:'图天下太平', effects:{ loyalty:1 }, result:'老兵点点头，又摇摇头。' },
+      { label:'B', text:'图封妻荫子', effects:{ ambition:1 }, result:'老兵笑了：『这话实在。』' },
+      { label:'C', text:'图一个痛快', taunt:true, effects:{ fame:1 }, result:'老兵把酒囊递给你：『就冲这句，我跟你走到底。』' }
+    ] }
+];
+
+const REGULAR_POOL = EVENTS.filter(e => e.weight > 0);
+const CHAPTER_EVENT_NODES = [2, 5, 8, 11];
+const MAX_EVENTS_GAME = 4;
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { EVENTS, REGULAR_POOL, CHAPTER_EVENT_NODES, MAX_EVENTS_GAME };
+}
+</script>
+<script>
+/* 《乱世拼将》· 三国版 —— app.js
+ * 流程：首页 → 设定（路线+出身）→ 夺技 → 揭幕 → 十二章（事件穿插）→ 结局 → 海报
+ * 依《开发任务书 v1.1》§1/§3/§4/§7/§8/§9 实现。纯静态、无存档。 */
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const round10 = v => Math.round(v / 10) * 10;
+
+/* ---------- 状态 ---------- */
+const S = {
+  route: null, origin: null,
+  attrs: {}, lockedFrom: {}, claimed: new Set(), swapsLeft: 3, picks: 0,
+  faction: null, person: null, poolAttrs: {}, batch: [],
+  ovr: 0, deBuPei: 0, title: '', startFaction: '',
+  ch: 0, health: 100, troops: 0,
+  sec: { fame:0, network:0, loyalty:0, ambition:0, controversy:0 },
+  flags: [], taunts: 0, personalFail: 0, merit: 0, scenes: 0,
+  bios: [], eventsUsed: [], eventsFired: 0,
+  finalChoice: null, deadPending: false, endingId: null, score: 0,
+  gamble: false, selfStreak: 0
+};
+
+const TIER_POINTS = { '大胜':3, '胜':2, '僵持':1, '败':0 };
+const EVENT_AFTER_CHAPTERS = [2, 5, 8, 11];
+
+/* ---------- 屏幕 ---------- */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+  $('screen-' + name).classList.remove('hidden');
+  const label = { home:'《乱世拼将》', setup:'设定', draft:'夺技', unveil:'揭幕', chapter:'乱世十二章', ending:'结局', poster:'此人列传' }[name];
+  $('progress').textContent = label || '';
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 设定 ---------- */
+function renderSetup() {
+  $('route-list').innerHTML = ROUTE_ORDER.map(r =>
+    `<button class="pick-card" data-route="${r}"><div class="pick-name">${r}</div>
+     <div class="pick-desc">${ATTR_KEYS.map(k => ATTR_NAMES[k] + ' ' + ROUTE_TEMPLATES[r][k]).join(' · ')}</div></button>`).join('');
+  $('origin-list').innerHTML = ORIGINS.map((o, i) =>
+    `<button class="pick-card" data-origin="${i}"><div class="pick-name">${o.name}</div>
+     <div class="pick-desc">${o.desc}｜修正：${Object.entries(o.initFix).map(([k,v]) => ATTR_NAMES[k] + '+' + v).join('、')}</div></button>`).join('');
+  document.querySelectorAll('[data-route]').forEach(b => b.onclick = () => {
+    S.route = b.dataset.route;
+    document.querySelectorAll('[data-route]').forEach(x => x.classList.toggle('active', x === b));
+    syncSetupBtn();
+  });
+  document.querySelectorAll('[data-origin]').forEach(b => b.onclick = () => {
+    S.origin = ORIGINS[+b.dataset.origin];
+    document.querySelectorAll('[data-origin]').forEach(x => x.classList.toggle('active', x === b));
+    syncSetupBtn();
+  });
+}
+function syncSetupBtn() { $('btn-to-draft').disabled = !(S.route && S.origin); }
+
+/* ---------- 夺技 ---------- */
+function factionExhausted(f) { return f.people.every(p => S.claimed.has(f.name + '-' + p.name)); }
+function rollFaction() {
+  const avail = FACTIONS.filter(f => !factionExhausted(f));
+  S.faction = pick(avail);
+  S.person = null;
+  S.poolAttrs = {};
+  const unclaimed = S.faction.people.filter(p => !S.claimed.has(S.faction.name + '-' + p.name));
+  S.batch = drawBatch(unclaimed);
+  S.batch.forEach(p => { S.poolAttrs[p.name] = genPlayerAttr(p.route, p.tier, p.special); });
+}
+/* 按稀有度权重不放回抽取一批（每批 5 人）：S 权重最低、D 最高，顶配人物明显更稀有 */
+function drawBatch(people) {
+  const pool = people.slice(), out = [];
+  while (pool.length && out.length < 5) {
+    let total = 0;
+    for (const p of pool) total += TIER_WEIGHT[p.tier] || 1;
+    let r = Math.random() * total, idx = pool.length - 1;
+    for (let i = 0; i < pool.length; i++) { r -= TIER_WEIGHT[pool[i].tier] || 1; if (r <= 0) { idx = i; break; } }
+    out.push(pool.splice(idx, 1)[0]);
+  }
+  return out;
+}
+function startDraft() {
+  S.attrs = {}; S.lockedFrom = {}; S.claimed = new Set(); S.swapsLeft = 3; S.picks = 0;
+  rollFaction();
+  showScreen('draft');
+  renderDraft();
+}
+function renderMinePanel() {
+  const el = $('draft-mine');
+  if (!el) return;
+  const filled = {};
+  for (const k of ATTR_KEYS) filled[k] = (k in S.attrs) ? S.attrs[k] : ROUTE_TEMPLATES[S.route][k];
+  const est = computeOVR(S.route, filled);
+  el.innerHTML = `<div class="mine-title">🧩 我的拼图（已锁定 ${S.picks} / 12）｜预估总评 <b style="color:#E62B1E;">${est} / 100</b><span class="grade">${attrGrade(est)}</span>（未夺项按${S.route}底子估）</div>
+    <div class="attr-grid">${ATTR_KEYS.map(k => (k in S.attrs)
+      ? `<div class="attr-cell"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${S.attrs[k]}</div><div class="a-grade">${attrGrade(S.attrs[k])}</div></div>`
+      : `<div class="attr-cell empty"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">—</div></div>`).join('')}</div>`;
+}
+function renderDraft() {
+  renderMinePanel();
+  $('draft-count').textContent = `已夺 ${S.picks} / 12`;
+  $('btn-swap').textContent = `🔀 换一批（剩 ${S.swapsLeft} 次）`;
+  $('btn-swap').disabled = S.swapsLeft <= 0 || !!S.person;
+  const stage = $('draft-stage');
+  if (!S.person) {
+    const remain = S.faction.people.filter(p => !S.claimed.has(S.faction.name + '-' + p.name)).length;
+    stage.innerHTML = `<div class="faction-name">🎲 本批势力：${S.faction.name}（选 1 名人物 · 本势力库中尚余 ${remain} 人）</div>
+      <div class="people-grid">${S.batch.map(p => {
+        const decay = routeDecay(S.route, p.route);
+        const all = S.poolAttrs[p.name];
+        const povr = computeOVR(p.route, all);
+        const top3 = ATTR_KEYS.slice().sort((a, b) => all[b] - all[a]).slice(0, 3)
+          .map(k => `${ATTR_NAMES[k]} ${all[k]}<span class="grade">${attrGrade(all[k])}</span>`).join(' · ');
+        return `<button class="person-card${p.tier === 'S' ? ' tier-top' : ''}" data-person="${p.name}">
+          <div class="person-name">${p.name}<span class="grade">${attrGrade(povr)}</span></div>
+          <div class="person-meta">${p.route} · ${RARITY_LABEL[p.tier]} · 总评 ${povr} / 100 · 衰减 ×${decay.toFixed(2)}</div>
+          <div class="person-top">${top3}</div></button>`;
+      }).join('')}</div>`;
+    stage.querySelectorAll('[data-person]').forEach(b => b.onclick = () => {
+      S.person = S.faction.people.find(p => p.name === b.dataset.person);
+      renderDraft();
+    });
+  } else {
+    const p = S.person, all = S.poolAttrs[p.name], decay = routeDecay(S.route, p.route);
+    stage.innerHTML = `<div class="faction-name">${S.faction.name} · ${p.name}（${p.route}）——夺走哪一项？</div>
+      <div class="attr-grid">${ATTR_KEYS.map(k => {
+        const locked = k in S.attrs;
+        const val = Math.max(30, Math.floor(all[k] * decay));
+        const over = val > ( (S.poolAttrs[p.name].physique + S.poolAttrs[p.name].nerve) / 2 + 30 );
+        return `<button class="attr-btn" data-attr="${k}" ${locked ? 'disabled' : ''}>
+          <div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${locked ? S.attrs[k] : val}</div><div class="a-grade">${attrGrade(locked ? S.attrs[k] : val)}</div></button>`;
+      }).join('')}</div>
+      <p class="hint" style="margin-top:10px;">点一项即锁定为你的最终属性（已含衰减）。</p>`;
+    stage.querySelectorAll('[data-attr]').forEach(b => b.onclick = () => lockAttr(b.dataset.attr));
+  }
+  const lockedKeys = Object.keys(S.attrs);
+  $('draft-locked').innerHTML = lockedKeys.length
+    ? '已锁定：' + lockedKeys.map(k => `${ATTR_NAMES[k]} ${S.attrs[k]}（${S.lockedFrom[k]}）`).join(' · ')
+    : '尚未锁定任何属性。';
+}
+function lockAttr(key) {
+  const p = S.person, all = S.poolAttrs[p.name], decay = routeDecay(S.route, p.route);
+  S.attrs[key] = Math.max(30, Math.floor(all[key] * decay));
+  S.lockedFrom[key] = p.name;
+  S.claimed.add(S.faction.name + '-' + p.name);
+  S.picks++;
+  S.person = null;
+  if (S.picks >= 12) { finishDraft(); return; }
+  rollFaction();
+  renderDraft();
+}
+
+/* ---------- 揭幕结算（任务书 §1 顺序：锁定 → 出身修正 → 钳上限 99 → 重算德不配位） ---------- */
+function computeDeBuPei(attrs) {
+  const th = (attrs.physique + attrs.nerve) / 2 + 30;
+  return ATTR_KEYS.filter(k => attrs[k] > th).length;
+}
+function computeTitle() {
+  const sorted = ATTR_KEYS.slice().sort((a, b) => S.attrs[b] - S.attrs[a]);
+  const top2 = [sorted[0], sorted[1]];
+  let t = null;
+  for (const pair of TITLE_PAIRS) {
+    if (top2.includes(pair.attrs[0]) && top2.includes(pair.attrs[1])) { t = pair.title; break; }
+  }
+  if (!t) t = (sorted[0] === 'might') ? '当世虎将' : ('缝合型' + S.route);
+  if (S.deBuPei >= 4) t = '虚浮的' + t;
+  return t;
+}
+function roleRank(ovr) {
+  if (ovr >= 84) return '一方之主相';
+  if (ovr >= 76) return '国之干臣';
+  if (ovr >= 68) return '一员骁将';
+  return '无名小卒';
+}
+function finishDraft() {
+  for (const k in S.origin.initFix) S.attrs[k] += S.origin.initFix[k];
+  for (const k of ATTR_KEYS) S.attrs[k] = Math.min(99, S.attrs[k]);
+  for (const k of SEC_KEYS) S.sec[k] = 0;
+  for (const k in (S.origin.initSec || {})) S.sec[k] = S.origin.initSec[k];
+  S.deBuPei = computeDeBuPei(S.attrs);
+  S.ovr = computeOVR(S.route, S.attrs);
+  S.title = computeTitle();
+  S.troops = round10(200 + S.attrs.command * 20);
+  S.health = 100;
+  $('unveil-title').textContent = S.title;
+  $('unveil-lines').innerHTML =
+    `路线 ${S.route} ｜ 总评 <b>${S.ovr} / 100</b><span class="grade">${attrGrade(S.ovr)}</span> ｜ 德不配位 <b>${S.deBuPei}</b> 项<br>` +
+    `角色定位：${roleRank(S.ovr)} ｜ 初始兵马 ${S.troops} ｜ 出身：${S.origin.name}`;
+  $('unveil-attrs').innerHTML = ATTR_KEYS.map(k => {
+    const th = (S.attrs.physique + S.attrs.nerve) / 2 + 30;
+    return `<div class="attr-cell"><div class="a-name">${ATTR_NAMES[k]}${S.attrs[k] > th ? ' ⚠️' : ''}</div><div class="a-val">${S.attrs[k]}</div><div class="a-grade">${attrGrade(S.attrs[k])}</div></div>`;
+  }).join('');
+  showScreen('unveil');
+}
+
+/* ---------- 掷骰（任务书 §4.3） ---------- */
+function successRate(checkKey) {
+  return clamp(Math.round(35 + (S.attrs[checkKey] - 60) * 0.8 - S.deBuPei * 3), 10, 90);
+}
+
+/* ---------- 后果结算（任务书 §4.4） ---------- */
+function applyEffects(eff) {
+  if (!eff) return;
+  for (const k of Object.keys(eff)) {
+    const v = eff[k];
+    if (k === 'health') S.health = clamp(S.health + v, 0, 100);
+    else if (k === 'troops') {
+      if (v === 'recruit') S.troops += round10(S.attrs.charisma * 10);
+      else if (v === 'recruit60') S.troops += round10(S.attrs.charisma * 10 * 0.6);
+      else S.troops += v;
+      S.troops = Math.max(0, S.troops);
+    }
+    else if (k === 'perm') { for (const pk of Object.keys(v)) S.attrs[pk] = clamp(S.attrs[pk] + v[pk], 40, 99); }
+    else if (k === 'flag') { if (!S.flags.includes(v)) S.flags.push(v); }
+    else if (SEC_KEYS.includes(k)) {
+      let val = v;
+      if (k === 'fame' && val > 0 && S.origin.fameGrowBonus) val += 1;
+      if (k === 'network' && val > 0 && S.origin.secGrowBonus) val = Math.ceil(val * 1.5);
+      S.sec[k] = clamp(S.sec[k] + val, -10, 20);
+    }
+  }
+}
+
+/* 后果预览（v2：选项点之前先标明赌注） */
+function effectSummary(eff) {
+  if (!eff) return '无';
+  const parts = [];
+  for (const k of Object.keys(eff)) {
+    const v = eff[k];
+    if (k === 'health') parts.push(`健康${v > 0 ? '+' : ''}${v}`);
+    else if (k === 'troops') {
+      if (v === 'recruit') parts.push('兵马+招募');
+      else if (v === 'recruit60') parts.push('兵马+招募六成');
+      else parts.push(`兵马${v > 0 ? '+' : ''}${v}`);
+    }
+    else if (k === 'perm') { for (const pk of Object.keys(v)) parts.push(`${ATTR_NAMES[pk]}永久${v[pk] > 0 ? '+' : ''}${v[pk]}`); }
+    else if (k === 'flag') { /* 标记不在预览里剧透 */ }
+    else if (SEC_KEYS.includes(k)) parts.push(`${SEC_NAMES[k]}${v > 0 ? '+' : ''}${v}`);
+  }
+  return parts.length ? parts.join('·') : '无得失';
+}
+
+/* 效果缩放（赌一把：数值翻倍；招募类先按当前魅力折算为数值再翻倍，标记不翻倍） */
+function scaleEffects(eff, mult) {
+  if (!eff) return eff;
+  const out = {};
+  for (const k of Object.keys(eff)) {
+    const v = eff[k];
+    if (k === 'troops' && v === 'recruit') out[k] = round10(S.attrs.charisma * 10) * mult;
+    else if (k === 'troops' && v === 'recruit60') out[k] = round10(S.attrs.charisma * 10 * 0.6) * mult;
+    else if (k === 'perm') { out[k] = {}; for (const pk of Object.keys(v)) out[k][pk] = v[pk] * mult; }
+    else if (typeof v === 'number') out[k] = v * mult;
+    else out[k] = v;
+  }
+  return out;
+}
+
+/* 自保连罚（正式规则）：连续选「自保」逐级加重，按连选次数查表；
+ * 连选满 10 次累计：声望 -16 · 兵马 -1150 · 争议 +7 */
+const SELF_PENALTY = [
+  null, null, null,
+  { fame:-1, troops:-50 },
+  { fame:-1, troops:-80, controversy:1 },
+  { fame:-2, troops:-120, controversy:1 },
+  { fame:-2, troops:-150, controversy:1 },
+  { fame:-2, troops:-170, controversy:1 },
+  { fame:-2, troops:-190, controversy:1 },
+  { fame:-3, troops:-190, controversy:1 },
+  { fame:-3, troops:-200, controversy:1 }
+];
+function selfPenalty(streak) {
+  if (streak < 3) return null;
+  return SELF_PENALTY[Math.min(streak, SELF_PENALTY.length - 1)];
+}
+
+/* ---------- 章节引擎（任务书 §4.2） ---------- */
+function startChapters() {
+  S.ch = 0; S.flags = []; S.taunts = 0; S.personalFail = 0; S.merit = 0; S.scenes = 0;
+  S.gamble = false; S.selfStreak = 0;
+  S.bios = []; S.eventsUsed = []; S.eventsFired = 0; S.finalChoice = null; S.deadPending = false;
+  showScreen('chapter');
+  enterChapter(1);
+}
+function enterChapter(n) {
+  S.ch = n;
+  S.gamble = false;
+  const ch = CHAPTERS[n - 1];
+  let note = '';
+  if (n === 12) {
+    S.health = clamp(S.health + 8, 0, 100);
+    note = '终局章：不扣健康，休养 +8';
+  } else {
+    const deduct = S.deBuPei * 2 + randInt(0, 3);
+    S.health = clamp(S.health - deduct, 0, 100);
+    note = `章首扣健康 ${deduct}（德不配位 ${S.deBuPei} 项）`;
+    if (n === 4 || n === 8) { S.health = clamp(S.health + 8, 0, 100); note += `，休养 +8`; }
+  }
+  if (S.health <= 0) { finishEnding('disease'); return; }
+  const brief = (n === 4 && S.flags.includes('proDong') && ch.altBrief) ? ch.altBrief : ch.brief;
+  const checkKeys = [...new Set(ch.options.filter(o => o.check).map(o => o.check))];
+  const checksLine = checkKeys.length
+    ? `<span class="ch-checks">本章看你的：${checkKeys.map(k => `${ATTR_NAMES[k]} ${S.attrs[k]}<span class="grade">${attrGrade(S.attrs[k])}</span>`).join(' · ')}</span>` : '';
+  $('ch-num').textContent = `第 ${n} / 12 章`;
+  $('ch-name').textContent = ch.name;
+  $('ch-brief').innerHTML = `${brief}<span class="deduct">（${note}，当前健康 ${S.health}）</span>${checksLine}`;
+  $('ch-result').classList.add('hidden');
+  $('btn-chapter-next').classList.remove('on');
+  renderChapterOptions(ch);
+  refreshChapterUI();
+}
+/* 选项渲染独立成函数：赌一把开关只重渲染选项，不重复扣章首健康 */
+function gambleRate(rate) { return Math.max(5, Math.floor(rate / 2)); }
+function renderChapterOptions(ch) {
+  const gBtn = $('btn-gamble');
+  const hasCheck = ch.options.some(o => o.check);
+  gBtn.classList.toggle('hidden', !hasCheck);
+  gBtn.classList.toggle('on', S.gamble);
+  gBtn.textContent = S.gamble
+    ? '🎲 赌一把：开（成功率减半 · 收益与功业翻倍 · 失败代价加倍）'
+    : '🎲 赌一把：关（点此开启，搏一把）';
+  gBtn.onclick = () => { S.gamble = !S.gamble; renderChapterOptions(ch); };
+  const box = $('ch-options');
+  box.classList.remove('hidden');
+  box.innerHTML = ch.options.map((o, i) => {
+    let sub = o.kind;
+    if (o.check) {
+      const r = successRate(o.check);
+      sub += ` · 判定${ATTR_NAMES[o.check]} ${S.attrs[o.check]} · 成功率 ${S.gamble ? gambleRate(r) + '%（赌）' : r + '%'}`;
+    }
+    if (o.taunt) sub += ' · 狂言';
+    let preview = '';
+    if (o.check) {
+      const wEff = S.gamble ? scaleEffects(o.win.effects, 2) : o.win.effects;
+      const lEff = S.gamble ? scaleEffects(o.lose.effects, 2) : o.lose.effects;
+      preview = `<span class="opt-preview">成 → ${effectSummary(wEff)} ｜ 败 → ${effectSummary(lEff)}（判定失败另扣 健康-3 · 兵马-50）</span>`;
+    } else if (o.fixed) {
+      preview = `<span class="opt-preview">后果 → ${effectSummary(o.fixed.effects)}</span>`;
+      if (o.kind === '自保') {
+        const pen = selfPenalty(S.selfStreak + 1);
+        if (pen) preview += `<span class="opt-preview" style="color:#E62B1E;">⚠️ 已连选自保 ${S.selfStreak} 次，再选触发连罚：${effectSummary(pen)}</span>`;
+      }
+    }
+    return `<button class="opt-btn" data-opt="${i}"><b>${o.label}.</b> ${o.text}<span class="opt-sub">${sub}</span>${preview}</button>`;
+  }).join('');
+  box.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => chooseChapterOption(ch.options[+b.dataset.opt]));
+}
+function refreshChapterUI() {
+  $('ch-resbar').innerHTML =
+    `<span class="res ${S.health < 30 ? 'warn' : ''}">❤ 健康 ${S.health}</span>` +
+    `<span class="res">⚔️ 兵马 ${S.troops}</span>` +
+    `<span class="res">声望 ${S.sec.fame}</span>` +
+    `<span class="res">功业 ${S.merit}</span>` +
+    `<span class="res">名场面 ${S.scenes}</span>` +
+    `<span class="res">狂言 ${S.taunts}</span>` +
+    (S.selfStreak >= 2 ? `<span class="res warn">自保连选 ${S.selfStreak}</span>` : '');
+  $('ch-biogs').innerHTML = S.bios.map((b, i) => `<p><b>第${i + 1}章·</b>${b}</p>`).join('') || '<p>尚无。</p>';
+}
+function chooseChapterOption(opt) {
+  const ch = CHAPTERS[S.ch - 1];
+  if (opt.taunt) S.taunts++;
+  let branch, head = '', extraNote = '';
+  const gambling = S.gamble && !!opt.check;
+  let success = null;
+  if (opt.check) {
+    const baseRate = successRate(opt.check);
+    const rate = gambling ? gambleRate(baseRate) : baseRate;
+    const roll = randInt(1, 100);
+    success = roll <= rate;
+    const raw = success ? opt.win : opt.lose;
+    branch = gambling ? Object.assign({}, raw, { effects: scaleEffects(raw.effects, 2) }) : raw;
+    head = `掷骰 ${roll}（成功率 ${rate}%${gambling ? ' · 赌一把' : ''}）——${success ? '成了' : '败了'}`;
+    if (opt.kind === '亲为') {
+      if (success && S.attrs[opt.check] >= 85) { S.scenes++; head += ' · 名场面！'; }
+      if (!success) S.personalFail++;
+    }
+    if (opt.scene && success && S.attrs[opt.check] >= 85 && opt.kind !== '亲为') S.scenes++;
+  } else {
+    branch = opt.fixed;
+    head = ch.isFinal ? `终局表态：${opt.text}` : `你选了：${opt.text}`;
+  }
+  if (opt.finalChoice) S.finalChoice = opt.finalChoice;
+  applyEffects(branch.effects);
+  /* 判定失败统一另扣（章节与事件通用规则） */
+  if (success === false) {
+    applyEffects({ health:-3, troops:-50 });
+    extraNote = '判定失败另扣：健康-3 · 兵马-50';
+  }
+  /* 自保连选计数与连罚：选非自保即清零 */
+  if (opt.kind === '自保') {
+    S.selfStreak++;
+    const pen = selfPenalty(S.selfStreak);
+    if (pen) {
+      applyEffects(pen);
+      extraNote = (extraNote ? extraNote + '｜' : '') + `自保连选第 ${S.selfStreak} 次，连罚：${effectSummary(pen)}`;
+    }
+  } else { S.selfStreak = 0; }
+  S.gamble = false;
+  if (!ch.noMerit && branch.tier) S.merit += (TIER_POINTS[branch.tier] || 0) * (gambling && success ? 2 : 1);
+  const bio = (branch.bio || '').replace(/\{兵马\}/g, String(S.troops));
+  if (bio) S.bios.push(bio);
+  if (S.health <= 0) S.deadPending = true;
+  $('ch-options').classList.add('hidden');
+  const res = $('ch-result');
+  res.classList.remove('hidden');
+  /* v2：战报分段揭示——先结果、再得失、最后列传句，继续按钮最后出现 */
+  $('ch-result-text').innerHTML =
+    `<div class="r-head reveal" id="rv-1">${head}${branch.tier && !ch.noMerit ? ` · 功业档：${branch.tier}` : ''}</div>` +
+    `<div class="r-after reveal" id="rv-2">本章得失：${effectSummary(branch.effects)}${extraNote ? '｜' + extraNote : ''}｜当前 健康 ${S.health} · 兵马 ${S.troops} · 声望 ${S.sec.fame} · 功业 ${S.merit} · 狂言 ${S.taunts}${S.flags.length ? ' · 标记：' + S.flags.join(' / ') : ''}</div>` +
+    (bio ? `<div class="r-bio reveal" id="rv-3">列传添一句：「${bio}」</div>` : '');
+  const nextBtn = $('btn-chapter-next');
+  nextBtn.classList.add('reveal');
+  nextBtn.textContent = S.deadPending ? '查看结局 →' : '继续 →';
+  nextBtn.onclick = afterChapter;
+  requestAnimationFrame(() => { const e = $('rv-1'); if (e) e.classList.add('on'); });
+  setTimeout(() => { const e = $('rv-2'); if (e) e.classList.add('on'); }, 550);
+  setTimeout(() => { const e = $('rv-3'); if (e) e.classList.add('on'); nextBtn.classList.add('on'); }, 1100);
+  refreshChapterUI();
+}
+/* 章末：先判事件（触发则停在弹窗，关窗后走 proceedAfterChapter，不重复判定），再判推进 */
+function afterChapter() {
+  if (S.deadPending) { finishEnding('disease'); return; }
+  if (EVENT_AFTER_CHAPTERS.includes(S.ch) && S.eventsFired < MAX_EVENTS_GAME) {
+    const ev = drawEvent();
+    if (ev) { openEvent(ev); return; }
+  }
+  proceedAfterChapter();
+}
+function proceedAfterChapter() {
+  if (S.ch === 11 && S.personalFail >= 3) { finishEnding('diedWar'); return; }
+  if (S.ch >= 12) { finishEnding(determineEnding()); return; }
+  enterChapter(S.ch + 1);
+}
+
+/* ---------- 事件（任务书 §4.2-5 / §6） ---------- */
+function drawEvent() {
+  let pool = REGULAR_POOL.filter(e => !S.eventsUsed.includes(e.id));
+  const e2 = EVENTS.find(e => e.id === 'E2');
+  if (S.deBuPei >= 2 && !S.eventsUsed.includes('E2')) pool = pool.concat([e2]);
+  if (!pool.length) return null;
+  const total = pool.reduce((s, e) => s + (e.weight > 0 ? e.weight : 50), 0);
+  let r = Math.random() * total, pickedEv = pool[pool.length - 1];
+  for (const e of pool) { r -= (e.weight > 0 ? e.weight : 50); if (r <= 0) { pickedEv = e; break; } }
+  S.eventsUsed.push(pickedEv.id);
+  S.eventsFired++;
+  return pickedEv;
+}
+let curEvent = null;
+function openEvent(ev) {
+  curEvent = ev;
+  $('ev-title').textContent = ev.title;
+  $('ev-story').textContent = ev.story;
+  $('ev-focus').textContent = ev.focus || '';
+  $('ev-result').classList.add('hidden');
+  $('btn-ev-close').classList.add('hidden');
+  const box = $('ev-options');
+  box.classList.remove('hidden');
+  box.innerHTML = ev.options.map((o, i) => {
+    let sub = '';
+    if (o.check) sub = `判定${ATTR_NAMES[o.check]} · 成功率 ${successRate(o.check)}%`;
+    if (o.taunt) sub += (sub ? ' · ' : '') + '狂言';
+    return `<button class="opt-btn" data-ev-opt="${i}"><b>${o.label}.</b> ${o.text}${sub ? `<span class="opt-sub">${sub}</span>` : ''}</button>`;
+  }).join('');
+  box.querySelectorAll('[data-ev-opt]').forEach(b => b.onclick = () => chooseEventOption(ev.options[+b.dataset.evOpt]));
+  $('event-modal').classList.remove('hidden');
+}
+function chooseEventOption(opt) {
+  if (opt.taunt) S.taunts++;
+  let result = '';
+  if (opt.check) {
+    const rate = successRate(opt.check);
+    const roll = randInt(1, 100);
+    const success = roll <= rate;
+    const branch = success ? opt.win : opt.lose;
+    if (opt.scene && success && S.attrs[opt.check] >= 85) S.scenes++;
+    applyEffects(branch.effects);
+    result = `掷骰 ${roll}（成功率 ${rate}%）——${success ? '成了' : '败了'}\n${branch.result}`;
+    if (!success) {
+      applyEffects({ health:-3, troops:-50 });
+      result += '\n判定失败另扣：健康-3 · 兵马-50';
+    }
+  } else {
+    applyEffects(opt.effects);
+    result = opt.result;
+  }
+  if (S.health <= 0) S.deadPending = true;
+  $('ev-options').classList.add('hidden');
+  const res = $('ev-result');
+  res.classList.remove('hidden');
+  res.textContent = result + `\n（健康 ${S.health} · 兵马 ${S.troops} · 声望 ${S.sec.fame}）`;
+  const closeBtn = $('btn-ev-close');
+  closeBtn.classList.remove('hidden');
+  closeBtn.textContent = S.deadPending ? '查看结局 →' : '继续 →';
+  closeBtn.onclick = () => {
+    $('event-modal').classList.add('hidden');
+    if (S.deadPending) { finishEnding('disease'); return; }
+    proceedAfterChapter();
+  };
+  refreshChapterUI();
+}
+
+/* ---------- 结局（任务书 §7，顺序 1→2→3→6→4→5→7） ---------- */
+const ENDING_DEFS = {
+  disease:  { name:'病逝榻前', quote:'身体没跟上野心。', bonus:0 },
+  diedWar:  { name:'马革裹尸', quote:'你冲得太靠前了。', bonus:0 },
+  founder:  { name:'开国之君', quote:'', bonus:1.0 },
+  halfTalk: { name:'大话成真了一半', quote:'', bonus:0 },
+  perish:   { name:'身死国灭', quote:'', bonus:0 },
+  huangYan: { name:'狂言成真', quote:'他吹的牛，后来都成了史书。', bonus:0.5 },
+  counselor:{ name:'一代谋主', quote:'', bonus:0.7 },
+  governor: { name:'治世能臣', quote:'', bonus:0.7 },
+  general:  { name:'天下名将', quote:'', bonus:0.5 },
+  mediocre: { name:'明哲保身', quote:'', bonus:0 },
+  empty:    { name:'青史无名', quote:'山水有情。', bonus:0 },
+  warlord:  { name:'割据一方', quote:'', bonus:0.3 }
+};
+function determineEnding() {
+  if (S.finalChoice === 'wang') {
+    if (S.sec.fame >= 12 && S.troops >= 3000) return 'founder';
+    if (S.taunts >= 4) return 'halfTalk';
+    return 'perish';
+  }
+  if (S.taunts >= 4 && (S.finalChoice === 'chen' || S.finalChoice === 'guiyin')) return 'huangYan';
+  if (S.finalChoice === 'chen') {
+    if (S.merit >= 18) {
+      const sorted = ATTR_KEYS.slice().sort((a, b) => S.attrs[b] - S.attrs[a]);
+      const top2 = [sorted[0], sorted[1]];
+      const has = (x, y) => top2.includes(x) && top2.includes(y);
+      if (has('intellect', 'insight')) return 'counselor';
+      if (has('politics', 'literature')) return 'governor';
+      return 'general';
+    }
+    return 'mediocre';
+  }
+  if (S.finalChoice === 'guiyin') return 'empty';
+  return 'warlord';
+}
+/* ---------- 评分（任务书 §8） ---------- */
+function computeScore(endingId) {
+  let s = 5.0;
+  s += clamp((S.merit - 12) * 0.09, -1.6, 1.6);
+  s += clamp((S.ovr - 72) * 0.05, -1.0, 1.0);
+  s += clamp(S.scenes * 0.3, 0, 1.2);
+  s += clamp((S.sec.fame + S.sec.network) * 0.04, -0.8, 0.8);
+  s -= clamp(S.sec.controversy * 0.06, 0, 1.2);
+  s += ENDING_DEFS[endingId].bonus || 0;
+  return Math.round(clamp(s, 1.0, 10.0) * 10) / 10;
+}
+function postText() {
+  const def = ENDING_DEFS[S.endingId];
+  return `我拼了个${S.title}，${def.name}，声望${S.sec.fame}，霸业评分${S.score}分，列传在此。你来评评？`;
+}
+function finishEnding(endingId) {
+  S.endingId = endingId;
+  S.score = computeScore(endingId);
+  const def = ENDING_DEFS[endingId];
+  $('ending-name').textContent = def.name;
+  $('ending-quote').textContent = def.quote ? `「${def.quote}」` : '';
+  $('ending-stats').innerHTML =
+    `${S.title} · ${S.route} ｜ 霸业值 ${S.ovr} ｜ 德不配位 ${S.deBuPei} 项<br>` +
+    `终局兵马 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功业分 ${S.merit} ｜ 名场面 ${S.scenes} ｜ 狂言 ${S.taunts} 次`;
+  $('ending-score').textContent = `霸业评分 ${S.score} / 10`;
+  showScreen('ending');
+}
+function renderPoster() {
+  const def = ENDING_DEFS[S.endingId];
+  $('poster-sub').textContent = `${S.title} + ${S.route} ｜ 霸业值 ${S.ovr} ｜ 德不配位 ${S.deBuPei} 项 ｜ 终局兵马 ${S.troops} ｜ 声望 ${S.sec.fame}`;
+  $('poster-biogs').innerHTML = S.bios.map(b => `<p>${b}</p>`).join('');
+  $('poster-ending').textContent = def.quote ? `${def.name}：「${def.quote}」` : def.name;
+  $('poster-score').textContent = `霸业评分 ${S.score} / 10`;
+  $('poster-share').textContent = postText();
+  showScreen('poster');
+}
+
+/* ---------- 启动绑定 ---------- */
+$('btn-start').onclick = () => { renderSetup(); showScreen('setup'); };
+$('btn-to-draft').onclick = startDraft;
+$('btn-swap').onclick = () => { if (S.swapsLeft > 0 && !S.person) { S.swapsLeft--; rollFaction(); renderDraft(); } };
+$('btn-to-chapters').onclick = startChapters;
+$('btn-to-poster').onclick = renderPoster;
+$('btn-restart').onclick = () => location.reload();
+$('btn-copy').onclick = () => {
+  const txt = postText();
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+  $('poster-copied').classList.remove('hidden');
+  setTimeout(() => $('poster-copied').classList.add('hidden'), 1500);
+};
+</script>
+</body>
+</html>
