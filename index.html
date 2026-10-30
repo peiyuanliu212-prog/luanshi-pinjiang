@@ -154,10 +154,8 @@ body { background: #F7F1E5 radial-gradient(ellipse at 50% -10%, #fdf8ec 0%, rgba
   box-shadow: inset 0 0 0 1px rgba(146, 116, 48, .35); }
 
 /* ---------- v4.1 视觉优化：山水之间 ---------- */
-body { background-color: #f2ead7; background-image:
-  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1440' height='220' viewBox='0 0 1440 220' preserveAspectRatio='none'%3E%3Cpath d='M0 220 L0 150 L120 95 L260 140 L400 70 L560 130 L700 60 L860 125 L1020 75 L1180 135 L1300 90 L1440 140 L1440 220 Z' fill='%23d9c9a3' fill-opacity='0.20'/%3E%3Cpath d='M0 220 L0 180 L180 130 L360 170 L560 115 L760 168 L960 118 L1160 172 L1300 140 L1440 178 L1440 220 Z' fill='%23c9b384' fill-opacity='0.16'/%3E%3C/svg%3E"),
-  radial-gradient(ellipse at 50% -10%, #fdf8ec 0%, rgba(253,248,236,0) 55%);
-  background-repeat: no-repeat, no-repeat; background-position: bottom center, top center; background-size: 100% 220px, 100% 60%; background-attachment: fixed, scroll; }
+body { background-color: #f2ead7; background-image: radial-gradient(ellipse at 50% -10%, #fdf8ec 0%, rgba(253,248,236,0) 55%); background-repeat: no-repeat; background-position: top center; background-size: 100% 60%; }
+body::after { content: ''; position: fixed; left: 0; right: 0; bottom: 0; height: 220px; z-index: -1; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1440' height='220' viewBox='0 0 1440 220' preserveAspectRatio='none'%3E%3Cpath d='M0 220 L0 150 L120 95 L260 140 L400 70 L560 130 L700 60 L860 125 L1020 75 L1180 135 L1300 90 L1440 140 L1440 220 Z' fill='%23d9c9a3' fill-opacity='0.20'/%3E%3Cpath d='M0 220 L0 180 L180 130 L360 170 L560 115 L760 168 L960 118 L1160 172 L1300 140 L1440 178 L1440 220 Z' fill='%23c9b384' fill-opacity='0.16'/%3E%3C/svg%3E") no-repeat bottom center / 100% 220px; }
 .card { background: #fffdf6; border: 1px solid #e3d3ac; box-shadow: 0 4px 18px rgba(90, 70, 30, .10); }
 .hero { position: relative; overflow: hidden; }
 .hero-art { width: 100%; aspect-ratio: 21 / 9; border-radius: 10px; margin-bottom: 16px;
@@ -187,10 +185,10 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
 
 /* ===== v5.1 稀有度视觉（炉石式分级：S 金色传说 / A 紫史诗 / B 蓝稀有 / C 普通 / D 黯淡） ===== */
 .person-card { position: relative; overflow: hidden; }
-.person-card.tier-s { border-color: #d9a514; background: linear-gradient(165deg, #fffdf4, #fbeec3 55%, #f6dd8e); box-shadow: 0 0 0 2px rgba(217,165,20,.5), 0 12px 28px rgba(190,140,20,.35); animation: tierReveal .55s ease both, tierGlow 2.2s ease-in-out .7s infinite alternate; }
+.person-card.tier-s { border-color: #d9a514; background: linear-gradient(165deg, #fffdf4, #fbeec3 55%, #f6dd8e); box-shadow: 0 0 0 2px rgba(217,165,20,.5), 0 12px 28px rgba(190,140,20,.35); animation: tierReveal .55s ease both; }
 .person-card.tier-s .avatar { box-shadow: 0 0 0 3px #d9a514, 0 0 20px rgba(217,165,20,.6); filter: saturate(1.15); }
 .person-card.tier-s::before { content: '传说'; position: absolute; top: 8px; right: 8px; z-index: 2; font-size: 10px; font-weight: 800; letter-spacing: 3px; color: #fff8e1; background: linear-gradient(135deg, #eec44a, #c8891b); padding: 2px 7px 2px 10px; border-radius: 99px; box-shadow: 0 2px 8px rgba(190,140,20,.5); }
-.person-card.tier-s::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.55) 49%, transparent 64%); background-size: 260% 100%; animation: tierShine 3.4s ease-in-out infinite; }
+.person-card.tier-s::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.55) 49%, transparent 64%); background-size: 260% 100%; animation: tierShine 1.5s ease-out .35s 1 both; }
 .person-card.tier-a { border-color: #8e6cc8; background: linear-gradient(165deg, #fdfaff, #eee5fb); box-shadow: 0 0 0 1px rgba(142,108,200,.4), 0 9px 22px rgba(110,80,180,.2); }
 .person-card.tier-a .avatar { box-shadow: 0 0 0 2px #8e6cc8, 0 0 12px rgba(142,108,200,.4); filter: saturate(1.06); }
 .person-card.tier-a::before { content: '史诗'; position: absolute; top: 8px; right: 8px; z-index: 2; font-size: 10px; font-weight: 800; letter-spacing: 3px; color: #f6f0ff; background: linear-gradient(135deg, #a582dd, #7757b8); padding: 2px 7px 2px 10px; border-radius: 99px; }
@@ -202,13 +200,14 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
 .tier-s .avatar.med { box-shadow: 0 0 0 3px #d9a514, 0 0 20px rgba(217,165,20,.6); }
 .tier-a .avatar.med { box-shadow: 0 0 0 2px #8e6cc8, 0 0 12px rgba(142,108,200,.4); }
 @keyframes tierReveal { 0% { transform: scale(.93); } 55% { transform: scale(1.025); } 100% { transform: scale(1); } }
-@keyframes tierGlow { from { box-shadow: 0 0 0 2px rgba(217,165,20,.5), 0 12px 28px rgba(190,140,20,.32); } to { box-shadow: 0 0 0 3px rgba(217,165,20,.75), 0 12px 34px rgba(190,140,20,.55); } }
 @keyframes tierShine { 0% { background-position: 130% 0; } 45% { background-position: -130% 0; } 100% { background-position: -130% 0; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="progress" id="progress">《乱世拼将》</div>
+  <!-- 性能预热：首页停留时先解码两张头像精灵图，进夺技首批不再卡顿（2px 透明，不可见） -->
+  <div aria-hidden="true" style="position:absolute;left:0;bottom:0;width:2px;height:2px;opacity:0;overflow:hidden;pointer-events:none;"><div class="avatar"></div><div class="avatar b2"></div></div>
 
   <!-- 首页 -->
   <section id="screen-home" class="screen">
@@ -969,9 +968,14 @@ function startDraft() {
   renderDraft();
   refreshAdState();
 }
+let __mineSig = '';
 function renderMinePanel() {
   const el = $('draft-mine');
   if (!el) return;
+  /* 性能：面板内容只随 picks/attrs/route 变，未变时跳过重渲染（选人时不再整块重绘） */
+  const sig = S.picks + '|' + S.route + '|' + ATTR_KEYS.map(k => S.attrs[k] || '').join(',');
+  if (sig === __mineSig) return;
+  __mineSig = sig;
   const filled = {};
   for (const k of ATTR_KEYS) filled[k] = (k in S.attrs) ? S.attrs[k] : ROUTE_TEMPLATES[S.route][k];
   const est = computeOVR(S.route, filled);
@@ -1570,6 +1574,9 @@ function renderPoster() {
   apply();
   window.addEventListener('load', apply);
 })();
+
+/* 资源预热：提前解码前三章插图，降低首次进入章节时的绘制延迟 */
+try { Object.values(CH_ART).slice(0, 3).forEach(u => { const im = new Image(); im.src = u; }); } catch (e) {}
 
 $('btn-start').onclick = () => { renderSetup(); showScreen('setup'); };
 $('btn-to-draft').onclick = startDraft;
