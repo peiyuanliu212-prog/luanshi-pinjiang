@@ -7,7 +7,8 @@
     "colorbox-request",
     "colorbox-request-bbs-open-post-editor",
     "colorbox-vatask-complete-reward-video",
-    "colorbox-vatask-get-activity-task-state"
+    "colorbox-vatask-get-activity-task-state",
+    "colorbox-fullscreen-safe-top"
   ]
 }
 </script>
@@ -1549,6 +1550,27 @@ function renderPoster() {
 }
 
 /* ---------- 启动绑定 ---------- */
+/* 全屏顶部安全适配（colorbox-fullscreen-safe-top）：启动时读一次宿主安全距离，
+   只给最外层 .wrap 加一次顶部避让（原顶距 16px），避免状态栏/刘海遮挡；宿主外返回 0、不加。 */
+(function applyFullscreenSafeTop() {
+  let done = false;
+  const apply = () => {
+    if (done) return;
+    try {
+      if (window.ColorboxAI && typeof window.ColorboxAI.getFullscreenSafeTop === 'function') {
+        const h = window.ColorboxAI.getFullscreenSafeTop();
+        if (typeof h === 'number' && h > 0) {
+          const wrap = document.querySelector('.wrap');
+          if (wrap) wrap.style.paddingTop = (16 + h) + 'px';
+        }
+        done = true;
+      }
+    } catch (e) { /* 宿主环境外忽略 */ }
+  };
+  apply();
+  window.addEventListener('load', apply);
+})();
+
 $('btn-start').onclick = () => { renderSetup(); showScreen('setup'); };
 $('btn-to-draft').onclick = startDraft;
 $('btn-swap').onclick = () => { if (S.swapsLeft > 0 && !S.person) { S.swapsLeft--; rollFaction(); renderDraft(); } };
