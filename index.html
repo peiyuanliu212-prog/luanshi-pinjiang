@@ -220,6 +220,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
       <button class="btn-primary btn-big" id="btn-start">⚔️ 开始拼将</button>
       <button class="btn-primary btn-big hidden" id="btn-continue" style="margin-top:10px;background:linear-gradient(180deg,#8a6d1f,#6d5518);">▶ 继续上局</button>
       <div class="hero-note hidden" id="save-info"></div>
+      <button class="btn-ghost" id="btn-records" style="width:100%;margin-top:10px;">🏆 我的战绩榜</button>
       <div class="hero-note">历史爱好者自制小游戏，非官方 · 单局约 15 分钟</div>
       <div class="byline">作者：lpy</div>
     </div>
@@ -302,6 +303,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
       <div class="ending-stats" id="ending-stats"></div>
       <div class="ending-score" id="ending-score"></div>
       <button class="btn-primary btn-big" id="btn-to-poster">看《此人列传》→</button>
+      <button class="btn-ghost" id="btn-records-ending" style="width:100%;margin-top:10px;">🏆 看我的战绩榜</button>
     </div>
   </section>
 
@@ -316,10 +318,22 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
       <div class="poster-share" id="poster-share"></div>
       <div class="poster-actions">
         <button class="btn-primary" id="btn-copy">发帖分享</button>
+        <button class="btn-ghost" id="btn-records-poster">战绩榜</button>
         <button class="btn-ghost" id="btn-restart">再拼一个</button>
       </div>
       <div class="copied hidden" id="poster-copied">已选中，长按即可复制</div>
       <div class="byline">作者：lpy</div>
+    </div>
+  </section>
+
+  <!-- 我的战绩榜（v5.7 本地榜：每局一记，按霸业评分排名） -->
+  <section id="screen-records" class="screen hidden">
+    <div class="card">
+      <h2>🏆 我的战绩榜</h2>
+      <p class="hint" id="records-summary"></p>
+      <div id="records-list"></div>
+      <button class="btn-primary btn-big" id="btn-records-back" style="margin-top:12px;">← 返回首页</button>
+      <button class="btn-ghost" id="btn-records-clear" style="width:100%;margin-top:8px;">清空全部记录</button>
     </div>
   </section>
 </div>
@@ -972,7 +986,7 @@ function showScreen(name) {
   window.__curScreen = name;
   document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
   $('screen-' + name).classList.remove('hidden');
-  const label = { home:'《乱世拼将》', setup:'设定', draft:'夺技', unveil:'揭幕', chapter:'乱世二十章', ending:'结局', poster:'此人列传' }[name];
+  const label = { home:'《乱世拼将》', setup:'设定', draft:'夺技', unveil:'揭幕', chapter:'乱世二十章', ending:'结局', poster:'此人列传', records:'我的战绩榜' }[name];
   $('progress').textContent = label || '';
   window.scrollTo(0, 0);
 }
@@ -1025,6 +1039,7 @@ function drawBatch(people, boostS) {
 }
 function startDraft() {
   clearSave();  /* v5.5：开新局清旧存档 */
+  S.__recorded = false;  /* v5.7：新局重置记账标记 */
   S.attrs = {}; S.lockedFrom = {}; S.claimed = new Set(); S.swapsLeft = 3; S.picks = 0;
   rollFaction();
   showScreen('draft');
@@ -1642,6 +1657,7 @@ function finishEnding(endingId) {
     `${S.title} · ${S.route} ｜ 霸业值 ${S.ovr} ｜ 德不配位 ${S.deBuPei} 项<br>` +
     `终局兵马 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功业分 ${S.merit} ｜ 名场面 ${S.scenes} ｜ 狂言 ${S.taunts} 次`;
   $('ending-score').textContent = `霸业评分 ${S.score} 分`;
+  pushRecord(endingId);  /* v5.7：本局成绩记入本地战绩榜 */
   showScreen('ending');
 }
 function renderPoster() {
@@ -1772,6 +1788,72 @@ window.addEventListener('pagehide', () => {
 });
 $('btn-continue').onclick = restoreGame;
 refreshContinueBtn();
+
+/* ---------- 本地战绩榜（v5.7）：每局结局自动记一笔，按霸业评分排名 ---------- */
+const RECORDS_KEY = 'luanshi_records_v1';
+function loadRecords() {
+  try { const a = JSON.parse(localStorage.getItem(RECORDS_KEY)); return Array.isArray(a) ? a : []; }
+  catch (e) { return []; }
+}
+function pushRecord(endingId) {
+  if (S.__recorded) return;  /* 同一局只记一次 */
+  S.__recorded = true;
+  try {
+    const def = ENDING_DEFS[endingId] || {};
+    const list = loadRecords();
+    list.push({
+      ts: Date.now(), score: S.score, ending: def.name || endingId, endingId,
+      title: S.title, route: S.route, ovr: S.ovr, merit: S.merit, scenes: S.scenes,
+      troops: S.troops, fame: S.sec.fame, fate: S.fate ? S.fate.name : ''
+    });
+    list.sort((a, b) => (b.score - a.score) || (a.ts - b.ts));
+    localStorage.setItem(RECORDS_KEY, JSON.stringify(list.slice(0, 100)));
+  } catch (e) {}
+}
+function fmtRecTime(ts) {
+  const t = new Date(ts);
+  const p = n => String(n).padStart(2, '0');
+  return `${t.getMonth() + 1}-${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}`;
+}
+function renderRecords() {
+  const list = loadRecords();
+  const sum = $('records-summary'), box = $('records-list');
+  if (!list.length) {
+    sum.textContent = '还没有战绩。打完一局，成绩就会记到这里，按霸业评分排座次。';
+    box.innerHTML = '';
+    return;
+  }
+  const best = list[0];
+  sum.textContent = `共 ${list.length} 局 · 最高 ${best.score} 分（${best.ending}）`;
+  const medal = ['🥇', '🥈', '🥉'];
+  box.innerHTML = list.map((r, i) => `
+    <div style="display:flex;gap:10px;align-items:baseline;padding:8px 2px;border-bottom:1px dashed rgba(120,96,40,.35);">
+      <div style="min-width:34px;font-weight:700;">${medal[i] || (i + 1) + '.'}</div>
+      <div style="flex:1;">
+        <div><b>${r.score} 分</b> · ${r.ending}${r.title ? ` · ${r.title}` : ''}</div>
+        <div class="hint" style="margin:2px 0 0;">${r.route || ''}线 · 功业 ${r.merit} · 名场面 ${r.scenes}${r.fate ? ` · 天命「${r.fate}」` : ''} · ${fmtRecTime(r.ts)}</div>
+      </div>
+    </div>`).join('');
+}
+function openRecords() { renderRecords(); showScreen('records'); }
+$('btn-records').onclick = openRecords;
+$('btn-records-ending').onclick = openRecords;
+$('btn-records-poster').onclick = openRecords;
+$('btn-records-back').onclick = () => showScreen('home');
+let __clearArm = false;
+$('btn-records-clear').onclick = () => {
+  const btn = $('btn-records-clear');
+  if (!__clearArm) {
+    __clearArm = true;
+    btn.textContent = '再点一次，确认清空全部记录';
+    setTimeout(() => { __clearArm = false; btn.textContent = '清空全部记录'; }, 3000);
+    return;
+  }
+  try { localStorage.removeItem(RECORDS_KEY); } catch (e) {}
+  __clearArm = false;
+  btn.textContent = '清空全部记录';
+  renderRecords();
+};
 
 let adBusy = false, adRewardDone = false, lastAdMsg = '';
 let tianmingBoost = false;
