@@ -4,11 +4,14 @@
 <script type="application/json" id="colorbox-skill-usage">
 {
   "skills": [
+    "colorbox-auth-get-user-info",
+    "colorbox-oss-upload-file",
     "colorbox-request",
     "colorbox-request-bbs-open-post-editor",
     "colorbox-vatask-complete-reward-video",
     "colorbox-vatask-get-activity-task-state",
-    "colorbox-fullscreen-safe-top"
+    "colorbox-fullscreen-safe-top",
+    "colorbox-result-poster-posting"
   ]
 }
 </script>
@@ -312,11 +315,13 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
   <section id="screen-poster" class="screen hidden">
     <div class="card poster">
       <div class="poster-head">《乱世拼将》· 此人列传</div>
+      <div class="poster-nick hidden" id="poster-nick" style="text-align:center;color:#8a6d1f;font-size:14px;margin-top:2px;"></div>
       <div class="poster-sub" id="poster-sub"></div>
       <div class="poster-body" id="poster-biogs"></div>
       <div class="poster-ending" id="poster-ending"></div>
       <div class="poster-score" id="poster-score"></div>
       <div class="poster-share" id="poster-share"></div>
+      <canvas id="poster-canvas" width="720" height="1040" style="width:100%;border-radius:10px;margin-top:12px;display:block;"></canvas>
       <div class="poster-actions">
         <button class="btn-primary" id="btn-copy">发帖分享</button>
         <button class="btn-ghost" id="btn-records-poster">战绩榜</button>
@@ -1329,6 +1334,121 @@ function selfPenalty(streak) {
   return SELF_PENALTY[Math.min(streak, SELF_PENALTY.length - 1)];
 }
 
+/* ---------- 章节备套（v5.9 双简报：同章第二套简报+选项，结构与原套同构，每局随机抽） ---------- */
+const CHAPTER_ALTS = {
+  1: { brief:'黄巾贼没先围城，先断了城外的水源。城里三百乡勇，嗓子比刀先冒烟。',
+    options:[
+      { label:'A', text:'夜袭夺水', check:'might', kind:'亲为',
+        win:{ effects:{ troops:150, fame:2 }, tier:'大胜', bio:'夜夺水源，三百乡勇一夜成名。' },
+        lose:{ effects:{ health:-8, troops:-100 }, tier:'败', bio:'夜袭不成，水没夺回，人先折了。' } },
+      { label:'B', text:'献粮缓兵', check:'intellect', kind:'谋划',
+        win:{ effects:{ fame:1, loyalty:1 }, tier:'胜', bio:'一车粮换了三天喘息，城里记了你的好。' },
+        lose:{ effects:{ fame:-1 }, tier:'僵持', bio:'粮送出去了，水还是没来。' } },
+      { label:'C', text:'掘井自救', kind:'自保',
+        fixed:{ effects:{ health:4 }, tier:'僵持', bio:'你在城里掘出三口井。井水不甜，命是甜的。' } }
+    ] },
+  2: { brief:'宫里火光冲天。听说宦官挟着小皇帝往北邙山去了，追兵和乱兵挤满了洛阳的街道。',
+    options:[
+      { label:'A', text:'追驾护送', check:'nerve', kind:'亲为',
+        win:{ effects:{ fame:2, network:1 }, tier:'胜', bio:'北邙山下，你把皇帝背回了洛阳。' },
+        lose:{ effects:{ health:-6, controversy:1 }, tier:'败', bio:'你追错了方向——那一夜，追错的人不止你一个。' } },
+      { label:'B', text:'收拢宫人攒人情', check:'insight', kind:'谋划',
+        win:{ effects:{ network:2 }, tier:'胜', bio:'乱世里最值钱的，是别人欠你的人情。' },
+        lose:{ effects:{ fame:-1 }, tier:'僵持', bio:'宫人都散了，你的人情也散了。' } },
+      { label:'C', text:'闭门收溃兵', kind:'自保',
+        fixed:{ effects:{ troops:50 }, tier:'僵持', bio:'洛阳烧了三天，你的营门没开过——溃兵倒是收了五十。' } }
+    ] },
+  5: { brief:'酸枣的会盟帐子还没拆完，人已经走光了。剩下的，是没主的地和没主的粮。',
+    options:[
+      { label:'A', text:'占山自立', check:'charisma', kind:'亲为', taunt:true,
+        win:{ effects:{ troops:'recruit', fame:2, flag:'selfLord' }, tier:'大胜', bio:'你在废帐前插了自己的旗。' },
+        lose:{ effects:{ fame:-2, controversy:1 }, tier:'败', bio:'旗插上了，来投的人先问粮在哪。' } },
+      { label:'B', text:'押注潜力股', check:'insight', kind:'谋划',
+        win:{ effects:{ network:2, troops:200 }, tier:'胜', bio:'你挑的那匹黑马，后来越跑越快。' },
+        lose:{ effects:{}, tier:'僵持', bio:'你押错了宝。乱世里，眼光也是要交学费的。' } },
+      { label:'C', text:'屯田招流民', kind:'自保',
+        fixed:{ effects:{ troops:'recruit60' }, tier:'僵持', bio:'别人抢地盘，你抢人。流民拖家带口地来了。' } }
+    ] },
+  7: { brief:'半夜有人叩营，说许攸来投，还带来了一张乌巢的布防图。真假，就在一炷香里。',
+    options:[
+      { label:'A', text:'依图夜袭乌巢', check:'tactics', kind:'亲为',
+        win:{ effects:{ fame:3, troops:200 }, tier:'大胜', bio:'那一夜，乌巢的火光照亮了官渡。' },
+        lose:{ effects:{ health:-10, troops:-200 }, tier:'败', bio:'图是真的，路是假的。你在伏击圈里杀了出来。' } },
+      { label:'B', text:'佯攻牵制', check:'command', kind:'谋划',
+        win:{ effects:{ troops:100 }, tier:'胜', bio:'你这边锣鼓敲得震天响，乌巢那边动了手。' },
+        lose:{ effects:{ troops:-100 }, tier:'僵持', bio:'佯攻打成了真攻，折了些人马。' } },
+      { label:'C', text:'两边都留后路', kind:'自保', taunt:true,
+        fixed:{ effects:{ network:1, controversy:1 }, tier:'僵持', bio:'袁营和曹营的门，你都留了条缝。' } }
+    ] },
+  8: { brief:'隆中的门敲了三次，高人还是云游未归。但山里的隐士圈，开始议论你的名字。',
+    options:[
+      { label:'A', text:'草庐住下候贤', check:'charisma', kind:'亲为',
+        win:{ effects:{ perm:{ intellect:2 }, network:1 }, tier:'胜', bio:'你在草庐住了七天，读完了高人留下的书。' },
+        lose:{ effects:{ fame:-1 }, tier:'僵持', bio:'高人没等到，山里的蚊子倒是喂饱了。' } },
+      { label:'B', text:'手书请益天下势', check:'literature', kind:'谋划',
+        win:{ effects:{ fame:2, perm:{ politics:1 } }, tier:'胜', bio:'你的信在隐士圈里传了一圈，回来时批了十六个字。' },
+        lose:{ effects:{}, tier:'僵持', bio:'信留下了，回音没留下。' } },
+      { label:'C', text:'山中休整', kind:'自保',
+        fixed:{ effects:{ health:6 }, tier:'僵持', bio:'隆中的山水养人。你在山里睡了三个整觉。' } }
+    ] },
+  10: { brief:'火借风势，曹军的船连成一片火海。败局已定，接下来是追击、收拢，和活下去。',
+    options:[
+      { label:'A', text:'率部追击', check:'nerve', kind:'亲为', taunt:true, scene:true,
+        win:{ effects:{ fame:3 }, tier:'大胜', bio:'华容道上泥泞难行，你的旗是最先插过去的。' },
+        lose:{ effects:{ health:-12 }, tier:'败', bio:'追得太深，泥里翻了船。' } },
+      { label:'B', text:'收拢降卒', check:'intellect', kind:'谋划',
+        win:{ effects:{ fame:2 }, tier:'胜', bio:'火光里你收拢了成建制的降卒——这一夜，捡人比杀人划算。' },
+        lose:{ effects:{ fame:-1 }, tier:'僵持', bio:'降卒收了又散，江边只剩空营。' } },
+      { label:'C', text:'守住渡口接应', kind:'自保',
+        fixed:{ effects:{ troops:100 }, tier:'僵持', bio:'你在渡口守了一夜，捞上来的都是自己人。' } }
+    ] },
+  11: { brief:'荆州刚换主人，三家的使者已经在路上了。城没动，棋盘先动了。',
+    options:[
+      { label:'A', text:'趁隙取一城', check:'command', kind:'亲为',
+        win:{ effects:{ troops:400, fame:1 }, tier:'大胜', bio:'三家还在谈，你的兵已经进了城。' },
+        lose:{ effects:{ troops:-250 }, tier:'败', bio:'城没取下，还把三家都得罪了。' } },
+      { label:'B', text:'纵横定约', check:'politics', kind:'谋划',
+        win:{ effects:{ loyalty:2, network:1 }, tier:'胜', bio:'一纸盟约，你的名字签在最中间。' },
+        lose:{ effects:{ loyalty:-1 }, tier:'僵持', bio:'盟约签了，墨迹未干就有人反悔。' } },
+      { label:'C', text:'回防屯田', kind:'自保',
+        fixed:{ effects:{ troops:150, health:4 }, tier:'僵持', bio:'你把刀收回鞘里，换成了锄头。' } }
+    ] },
+  13: { brief:'汉中打成了绞肉机。米仓山的粮道，成了两军共同的命门。',
+    options:[
+      { label:'A', text:'米仓山护粮', check:'command', kind:'亲为',
+        win:{ effects:{ fame:2, troops:200 }, tier:'大胜', bio:'粮车过米仓山，一辆没少。' },
+        lose:{ effects:{ health:-8, troops:-150 }, tier:'败', bio:'粮道上伏兵四起，你护住了人，没护住粮。' } },
+      { label:'B', text:'声东击西断粮道', check:'tactics', kind:'谋划',
+        win:{ effects:{ fame:2 }, tier:'胜', bio:'你烧了对方三处屯粮点，火光在山里亮了一夜。' },
+        lose:{ effects:{}, tier:'僵持', bio:'点了两把火，都被山雨浇了。' } },
+      { label:'C', text:'高挂免战牌', kind:'自保',
+        fixed:{ effects:{ troops:-50, health:4 }, tier:'僵持', bio:'免战牌挂了七天，兵们睡了个饱。' } }
+    ] },
+  14: { brief:'汉水已经漫过了堤。樊城在求援，围城的在借水，夹在中间的，是你。',
+    options:[
+      { label:'A', text:'泅水破围送信', check:'might', kind:'亲为',
+        win:{ effects:{ fame:2, troops:300 }, tier:'大胜', bio:'你泅水把信送进了樊城——城里多撑了七日。' },
+        lose:{ effects:{ health:-10, troops:-200 }, tier:'败', bio:'水太大了。信湿透了，人也差点没回来。' } },
+      { label:'B', text:'观天象决进退', check:'insight', kind:'谋划',
+        win:{ effects:{ troops:100 }, tier:'胜', bio:'你比所有人都早三天看懂了这场雨。' },
+        lose:{ effects:{ troops:-100 }, tier:'僵持', bio:'雨比你算的大了一寸，就这一寸。' } },
+      { label:'C', text:'堤上救人', kind:'自保',
+        fixed:{ effects:{ fame:1 }, tier:'僵持', bio:'你没进城，也没围城，你在堤上捞人。这一带，后来都念你的好。' } }
+    ] },
+  17: { brief:'祁山的粮道又拉长了。木牛流马在山道上排成长队，天上开始阴云压山。',
+    options:[
+      { label:'A', text:'督运木牛流马', check:'command', kind:'谋划',
+        win:{ effects:{ fame:2, troops:150 }, tier:'胜', bio:'木牛流马过祁山，粮一粒没洒。' },
+        lose:{ effects:{ troops:-200 }, tier:'败', bio:'山道塌方，粮车堵了三天。' } },
+      { label:'B', text:'阵前夺旗', check:'might', kind:'亲为', scene:true,
+        win:{ effects:{ fame:3 }, tier:'大胜', bio:'你在两军阵前夺了对方的旗。' },
+        lose:{ effects:{ health:-12 }, tier:'败', bio:'夺旗不成，反陷重围。' } },
+      { label:'C', text:'营中囤粮固守', kind:'自保',
+        fixed:{ effects:{ troops:100 }, tier:'僵持', bio:'你把粮囤得比城墙还厚。' } }
+    ] }
+};
+CHAPTERS.forEach((ch, i) => { const a = CHAPTER_ALTS[i + 1]; if (a) ch.alt = a; });
+
 /* ---------- 章节引擎（任务书 §4.2） ---------- */
 function startChapters() {
   S.ch = 0; S.flags = []; S.taunts = 0; S.personalFail = 0; S.merit = 0; S.scenes = 0;
@@ -1336,6 +1456,8 @@ function startChapters() {
   S.bios = []; S.eventsUsed = []; S.eventsFired = 0; S.finalChoice = null; S.deadPending = false;
   S.jinnang = false; S.rewindLeft = 2;
   S.fate = pick(FATES);  /* v5.6：本局天命开局抽定，整局生效 */
+  S.altSet = {};  /* v5.9 双简报：每章五五开抽备套 */
+  for (const n of Object.keys(CHAPTER_ALTS)) if (Math.random() < 0.5) S.altSet[n] = true;
   {  /* v5.8：天命见闻收集 */
     const collF = loadCollection();
     if (S.fate && !collF.fates[S.fate.id]) { collF.fates[S.fate.id] = Date.now(); saveCollection(collF); }
@@ -1361,6 +1483,10 @@ function curChapterOf(n) {
     const key = S.flags.includes('proDong') ? 'proDong' : (S.flags.includes('antiDong') ? 'antiDong' : 'neutral');
     const v = ch.variants[key];
     if (v) return Object.assign({}, ch, { brief: v.brief, options: v.options });
+  }
+  /* v5.9 双简报：本局抽中备套时用备套（站队/标记变体优先于备套） */
+  if (ch.alt && S.altSet && S.altSet[n]) {
+    return Object.assign({}, ch, { brief: ch.alt.brief, options: ch.alt.options });
   }
   return ch;
 }
@@ -1701,6 +1827,16 @@ function renderPoster() {
   $('poster-score').textContent = `霸业评分 ${S.score} 分`;
   $('poster-share').textContent = postText();
   showScreen('poster');
+  drawPosterCanvas();
+  /* v5.9：虎扑昵称上海报（App 内取到才显示，站外/未登录自动跳过） */
+  fetchNickname().then(n => {
+    if (n) {
+      const el = $('poster-nick');
+      el.textContent = `虎扑主公：${n}`;
+      el.classList.remove('hidden');
+      drawPosterCanvas();
+    }
+  });
 }
 
 /* ---------- 启动绑定 ---------- */
@@ -2150,6 +2286,125 @@ $('btn-ad-rewind').onclick = async () => {
 $('btn-to-chapters').onclick = startChapters;
 $('btn-to-poster').onclick = renderPoster;
 $('btn-restart').onclick = () => location.reload();
+/* ---------- 虎扑昵称（v5.9，auth.getUserInfo：仅取昵称用于海报，不存不用 PUID） ---------- */
+let hupuNickname = '';
+async function fetchNickname() {
+  if (hupuNickname) return hupuNickname;
+  try {
+    if (window.ColorboxAI && window.ColorboxAI.auth && typeof window.ColorboxAI.auth.getUserInfo === 'function') {
+      const res = await window.ColorboxAI.auth.getUserInfo();
+      if (res && res.code === 200 && res.data && res.data.islogin === 1 && res.data.nickname) {
+        hupuNickname = String(res.data.nickname).slice(0, 24);
+      }
+    }
+  } catch (e) { /* 站外/未登录：无昵称，海报照常 */ }
+  return hupuNickname;
+}
+
+/* ---------- 结果海报图（v5.9，result-poster-posting：Canvas → OSS → 发帖编辑器） ---------- */
+function wrapCanvasLines(ctx, text, maxWidth) {
+  const lines = [];
+  let cur = '';
+  for (const ch of String(text)) {
+    if (ctx.measureText(cur + ch).width > maxWidth && cur) { lines.push(cur); cur = ch; }
+    else cur += ch;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+function drawPosterCanvas() {
+  const cv = $('poster-canvas');
+  if (!cv || !S.endingId) return;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return;
+  const W = 720, H = 1040;
+  const def = ENDING_DEFS[S.endingId] || { name: '', quote: '' };
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#F9F3E4'); grad.addColorStop(1, '#EEE0C2');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#C9A227'; ctx.lineWidth = 3; ctx.strokeRect(18, 18, W - 36, H - 36);
+  ctx.lineWidth = 1; ctx.strokeRect(28, 28, W - 56, H - 56);
+  ctx.textAlign = 'center';
+  /* 印章 */
+  ctx.fillStyle = '#B03A1E';
+  ctx.fillRect(W - 128, 44, 76, 76);
+  ctx.fillStyle = '#FFF6E0';
+  ctx.font = '700 30px "Noto Serif SC","Songti SC",serif';
+  ctx.fillText('拼', W - 90, 76);
+  ctx.fillText('将', W - 90, 110);
+  /* 标题 */
+  ctx.fillStyle = '#3A2A16';
+  ctx.font = '700 42px "Noto Serif SC","Songti SC",serif';
+  ctx.fillText('《乱世拼将》· 此人列传', W / 2, 96);
+  let y = 140;
+  if (hupuNickname) {
+    ctx.fillStyle = '#8a6d1f';
+    ctx.font = '26px "Noto Serif SC","Songti SC",serif';
+    ctx.fillText(`虎扑主公：${hupuNickname}`, W / 2, y);
+    y += 14;
+  }
+  /* 结局 */
+  ctx.fillStyle = '#8E2F16';
+  ctx.font = '700 58px "Noto Serif SC","Songti SC",serif';
+  ctx.fillText(def.name, W / 2, y + 62);
+  y += 84;
+  if (def.quote) {
+    ctx.fillStyle = '#5d4a26';
+    const q = `「${def.quote}」`;
+    let qSize = 27;  /* 长引言自动缩字号防溢出 */
+    ctx.font = `italic ${qSize}px "Noto Serif SC","Songti SC",serif`;
+    while (ctx.measureText(q).width > W - 90 && qSize > 17) {
+      qSize -= 1;
+      ctx.font = `italic ${qSize}px "Noto Serif SC","Songti SC",serif`;
+    }
+    ctx.fillText(q, W / 2, y + 8);
+    y += 22;
+  }
+  /* 分隔线 */
+  ctx.strokeStyle = 'rgba(160,124,32,.6)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(90, y + 22); ctx.lineTo(W - 90, y + 22); ctx.stroke();
+  y += 58;
+  /* 数据行 */
+  ctx.fillStyle = '#3A2A16';
+  ctx.font = '28px "Noto Serif SC","Songti SC",serif';
+  const rows = [
+    `${S.title} · ${S.route}路线`,
+    `霸业值 ${S.ovr} ｜ 德不配位 ${S.deBuPei} 项`,
+    `终局兵马 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功业 ${S.merit} ｜ 名场面 ${S.scenes}`,
+    S.fate ? `本局天命：${S.fate.name}` : ''
+  ].filter(Boolean);
+  for (const r of rows) { ctx.fillText(r, W / 2, y); y += 42; }
+  /* 评分 */
+  ctx.fillStyle = '#8E2F16';
+  ctx.font = '700 62px "Noto Serif SC","Songti SC",serif';
+  ctx.fillText(`霸业评分 ${S.score} 分`, W / 2, y + 44);
+  y += 84;
+  /* 列传摘录 */
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#5d4a26';
+  ctx.font = '700 26px "Noto Serif SC","Songti SC",serif';
+  ctx.fillText('【列传摘录】', 70, y);
+  y += 36;
+  ctx.font = '24px "Noto Serif SC","Songti SC",serif';
+  ctx.fillStyle = '#4a3a20';
+  let lines = 0;
+  for (const b of S.bios) {
+    for (const ln of wrapCanvasLines(ctx, b, W - 140)) {
+      if (lines >= 9 || y > H - 110) break;
+      ctx.fillText(ln, 70, y);
+      y += 34; lines++;
+    }
+    if (lines >= 9 || y > H - 110) break;
+  }
+  if (!S.bios.length) { ctx.fillText('（此局无列传）', 70, y); y += 34; }
+  /* 页脚 */
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8a6d1f';
+  ctx.font = '22px "Noto Serif SC","Songti SC",serif';
+  const dt = new Date();
+  ctx.fillText(`作者：lpy ｜ ${dt.getFullYear()}-${dt.getMonth() + 1}-${dt.getDate()}`, W / 2, H - 52);
+}
+
 let sharing = false;
 $('btn-copy').onclick = async () => {
   if (sharing) return;
@@ -2157,7 +2412,7 @@ $('btn-copy').onclick = async () => {
     const t = $('poster-copied');
     t.textContent = msg;
     t.classList.remove('hidden');
-    setTimeout(() => t.classList.add('hidden'), 2200);
+    setTimeout(() => t.classList.add('hidden'), 2600);
   };
   const sdk = window.ColorboxAI && window.ColorboxAI.request && window.ColorboxAI.request.bbs && window.ColorboxAI.request.bbs.openPostEditor;
   if (typeof sdk === 'function') {
@@ -2168,6 +2423,25 @@ $('btn-copy').onclick = async () => {
         title: `我拼了个${S.title}，${def.name}，霸业评分${S.score}分`,
         content: postText() + '\n\n【此人列传】\n' + S.bios.join('\n') + `\n\n${def.name}｜霸业值 ${S.ovr}｜终局兵马 ${S.troops}｜声望 ${S.sec.fame}`
       };
+      /* v5.9 图片版：先把海报图传 OSS，成功才带图发帖；失败明确降级为文字版 */
+      const oss = window.ColorboxAI.oss && window.ColorboxAI.oss.uploadFile;
+      if (typeof oss === 'function') {
+        toast('正在生成海报图…');
+        try {
+          drawPosterCanvas();
+          const blob = await new Promise(r => $('poster-canvas').toBlob(r, 'image/png', 0.92));
+          if (!blob) throw new Error('海报生成失败');
+          const up = await window.ColorboxAI.oss.uploadFile({ file: blob, filename: `luanshi-poster-${Date.now()}.png` });
+          let okUrl = '';
+          if (up && up.downloadUrl) {
+            try { const u = new URL(up.downloadUrl); if (u.protocol === 'https:' && u.hostname) okUrl = up.downloadUrl; } catch (e) {}
+          }
+          if (!okUrl) throw new Error('海报上传失败');
+          params.imageUrl = okUrl;
+        } catch (e) {
+          toast('海报图没传上去，已改用文字版发帖');
+        }
+      }
       const bbs = window.ColorboxAI.bbsConfig && await window.ColorboxAI.bbsConfig.get();
       if (bbs && typeof bbs.bbsTagId === 'string' && bbs.bbsTagId.trim() !== '') {
         params.topicId = bbs.bbsTopicId;
