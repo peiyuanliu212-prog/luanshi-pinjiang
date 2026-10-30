@@ -183,6 +183,26 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
 .ending-name { font-family: "Noto Serif SC", "Songti SC", serif; color: #8f2d22; letter-spacing: 2px; }
 .progress { border-bottom: 1px solid #e3d3ac; padding-bottom: 10px; margin-bottom: 4px; }
 .ch-art { box-shadow: inset 0 0 0 1px rgba(146, 116, 48, .40), 0 3px 10px rgba(90, 70, 30, .12); }
+
+/* ===== v5.1 稀有度视觉（炉石式分级：S 金色传说 / A 紫史诗 / B 蓝稀有 / C 普通 / D 黯淡） ===== */
+.person-card { position: relative; overflow: hidden; }
+.person-card.tier-s { border-color: #d9a514; background: linear-gradient(165deg, #fffdf4, #fbeec3 55%, #f6dd8e); box-shadow: 0 0 0 2px rgba(217,165,20,.5), 0 12px 28px rgba(190,140,20,.35); animation: tierReveal .55s ease both, tierGlow 2.2s ease-in-out .7s infinite alternate; }
+.person-card.tier-s .avatar { box-shadow: 0 0 0 3px #d9a514, 0 0 20px rgba(217,165,20,.6); filter: saturate(1.15); }
+.person-card.tier-s::before { content: '传说'; position: absolute; top: 8px; right: 8px; z-index: 2; font-size: 10px; font-weight: 800; letter-spacing: 3px; color: #fff8e1; background: linear-gradient(135deg, #eec44a, #c8891b); padding: 2px 7px 2px 10px; border-radius: 99px; box-shadow: 0 2px 8px rgba(190,140,20,.5); }
+.person-card.tier-s::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.55) 49%, transparent 64%); background-size: 260% 100%; animation: tierShine 3.4s ease-in-out infinite; }
+.person-card.tier-a { border-color: #8e6cc8; background: linear-gradient(165deg, #fdfaff, #eee5fb); box-shadow: 0 0 0 1px rgba(142,108,200,.4), 0 9px 22px rgba(110,80,180,.2); }
+.person-card.tier-a .avatar { box-shadow: 0 0 0 2px #8e6cc8, 0 0 12px rgba(142,108,200,.4); filter: saturate(1.06); }
+.person-card.tier-a::before { content: '史诗'; position: absolute; top: 8px; right: 8px; z-index: 2; font-size: 10px; font-weight: 800; letter-spacing: 3px; color: #f6f0ff; background: linear-gradient(135deg, #a582dd, #7757b8); padding: 2px 7px 2px 10px; border-radius: 99px; }
+.person-card.tier-b { border-color: #7d9fc4; background: linear-gradient(165deg, #fbfdff, #e7f0fa); }
+.person-card.tier-b .avatar { box-shadow: 0 0 0 2px rgba(125,159,196,.75); }
+.person-card.tier-d { border-color: #ddd6c6; background: #f4f0e6; }
+.person-card.tier-d .avatar { filter: saturate(.7) brightness(.98); }
+.person-card.tier-d .person-meta, .person-card.tier-d .person-top { opacity: .78; }
+.tier-s .avatar.med { box-shadow: 0 0 0 3px #d9a514, 0 0 20px rgba(217,165,20,.6); }
+.tier-a .avatar.med { box-shadow: 0 0 0 2px #8e6cc8, 0 0 12px rgba(142,108,200,.4); }
+@keyframes tierReveal { 0% { transform: scale(.93); } 55% { transform: scale(1.025); } 100% { transform: scale(1); } }
+@keyframes tierGlow { from { box-shadow: 0 0 0 2px rgba(217,165,20,.5), 0 12px 28px rgba(190,140,20,.32); } to { box-shadow: 0 0 0 3px rgba(217,165,20,.75), 0 12px 34px rgba(190,140,20,.55); } }
+@keyframes tierShine { 0% { background-position: 130% 0; } 45% { background-position: -130% 0; } 100% { background-position: -130% 0; } }
 </style>
 </head>
 <body>
@@ -1010,7 +1030,7 @@ function renderDraft() {
         const povr = computeOVR(p.route, all);
         const top3 = ATTR_KEYS.slice().sort((a, b) => all[b] - all[a]).slice(0, 3)
           .map(k => `${ATTR_NAMES[k]} ${all[k]}<span class="grade">${attrGrade(all[k])}</span>`).join(' · ');
-        return `<button class="person-card${p.tier === 'S' ? ' tier-top' : ''}" data-person="${p.name}">
+        return `<button class="person-card tier-${p.tier.toLowerCase()}${p.tier === 'S' ? ' tier-top' : ''}" data-person="${p.name}">
           ${avatarHTML(p.name)}
           <div class="person-name">${p.name}<span class="grade">${attrGrade(povr)}</span></div>
           <div class="person-meta">${p.route} · ${RARITY_LABEL[p.tier]} · 总评 ${povr} / 100 · 衰减 ×${decay.toFixed(2)}</div>
@@ -1022,7 +1042,7 @@ function renderDraft() {
     });
   } else {
     const p = S.person, all = S.poolAttrs[p.name], decay = routeDecay(S.route, p.route);
-    stage.innerHTML = `${avatarHTML(p.name, 'med')}<div class="faction-name">${S.faction.name} · ${p.name}（${p.route}）——夺走哪一项？</div>
+    stage.innerHTML = `<span class="tier-${p.tier.toLowerCase()}" style="display:inline-block;">${avatarHTML(p.name, 'med')}</span><div class="faction-name">${S.faction.name} · ${p.name}（${p.route}）——夺走哪一项？</div>
       <div class="attr-grid">${ATTR_KEYS.map(k => {
         const locked = k in S.attrs;
         const val = Math.max(30, Math.floor(all[k] * decay));
