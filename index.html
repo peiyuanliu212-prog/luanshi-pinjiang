@@ -5,13 +5,15 @@
 {
   "skills": [
     "colorbox-auth-get-user-info",
+    "colorbox-cloud-save-get-value",
+    "colorbox-cloud-save-set-value",
+    "colorbox-fullscreen-safe-top",
     "colorbox-oss-upload-file",
     "colorbox-request",
     "colorbox-request-bbs-open-post-editor",
+    "colorbox-result-poster-posting",
     "colorbox-vatask-complete-reward-video",
-    "colorbox-vatask-get-activity-task-state",
-    "colorbox-fullscreen-safe-top",
-    "colorbox-result-poster-posting"
+    "colorbox-vatask-get-activity-task-state"
   ]
 }
 </script>
@@ -1057,12 +1059,23 @@ function rollFaction() {
 function drawBatch(people, boostS) {
   const wOf = p => (TIER_WEIGHT[p.tier] || 1) * (boostS && p.tier === 'S' ? 4 : 1);
   const pool = people.slice(), out = [];
+  /* v5.10：天命临身改为保底——本批必含 1 名 S 与 1 名 A（池中尚有时），其余再按权重抽。
+     原仅 S 权重 ×4，实测约 3/4 的批次一个 S 都没有，看广告换个 B 名不副实。 */
+  if (boostS) {
+    for (const tier of ['S', 'A']) {
+      const cand = pool.filter(p => p.tier === tier);
+      if (cand.length) out.push(pool.splice(pool.indexOf(pick(cand)), 1)[0]);
+    }
+  }
   while (pool.length && out.length < 5) {
     let total = 0;
     for (const p of pool) total += wOf(p);
     let r = Math.random() * total, idx = pool.length - 1;
     for (let i = 0; i < pool.length; i++) { r -= wOf(pool[i]); if (r <= 0) { idx = i; break; } }
     out.push(pool.splice(idx, 1)[0]);
+  }
+  if (boostS) { /* 保底位洗牌，避免 S/A 永远排在最前 */
+    for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
   }
   return out;
 }
@@ -1156,12 +1169,14 @@ function renderDraft() {
   } else {
     const p = S.person, all = S.poolAttrs[p.name], decay = routeDecay(S.route, p.route);
     stage.innerHTML = `<span class="tier-${p.tier.toLowerCase()}" style="display:inline-block;">${avatarHTML(p.name, 'med')}</span><div class="faction-name">${S.faction.name} · ${p.name}（${p.route}）——夺走哪一项？</div>
+      <div class="hint" style="margin:0 0 8px;">${RARITY_LABEL[p.tier]}人物 · ${decay < 1 ? `跨路线衰减 ×${decay.toFixed(2)}（下方为衰减后数值，绝活标注原值）` : '与你同路线，无衰减'}</div>
       <div class="attr-grid">${ATTR_KEYS.map(k => {
         const locked = k in S.attrs;
         const val = Math.max(30, Math.floor(all[k] * decay));
         const over = val > ( (S.poolAttrs[p.name].physique + S.poolAttrs[p.name].nerve) / 2 + 30 );
+        const origTag = (k === p.special && !locked && decay < 1) ? ` · 原 ${all[k]}` : '';
         return `<button class="attr-btn" data-attr="${k}" ${locked ? 'disabled' : ''}>
-          <div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${locked ? S.attrs[k] : val}</div><div class="a-grade">${attrGrade(locked ? S.attrs[k] : val)}</div></button>`;
+          <div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${locked ? S.attrs[k] : val}</div><div class="a-grade">${attrGrade(locked ? S.attrs[k] : val)}${origTag}</div></button>`;
       }).join('')}</div>
       <p class="hint" style="margin-top:10px;">点一项即锁定为你的最终属性（已含衰减）。</p>`;
     stage.querySelectorAll('[data-attr]').forEach(b => b.onclick = () => lockAttr(b.dataset.attr));
@@ -1927,7 +1942,7 @@ function restoreChapterView() {
   refreshChapterUI();
   syncAllAdBtns();
 }
-function restoreGame() {
+async function restoreGame() {
   const d = readSave();
   if (!d) return;
   __restoring = true;
@@ -1936,19 +1951,57 @@ function restoreGame() {
   tianmingBoost = !!d.tianmingBoost;
   rewindChapterUsed = d.rewindChapterUsed || 0;
   rewindSnapshot = null; rewindAvailable = false;
-  let adInterrupted = false;
-  try { adInterrupted = !!localStorage.getItem(PENDING_AD_KEY); localStorage.removeItem(PENDING_AD_KEY); } catch (e) {}
+  /* v5.10：读待发奖励标记（v5.5 的纯时间戳标记无 type，解析后自然落入「仅恢复进度」分支） */
+  let adInterrupted = false, pendingAd = null;
+  try {
+    const raw = localStorage.getItem(PENDING_AD_KEY);
+    localStorage.removeItem(PENDING_AD_KEY);
+    if (raw) {
+      adInterrupted = true;
+      const j = JSON.parse(raw);
+      if (j && j.type && Date.now() - (j.ts || 0) < 30 * 60 * 1000) pendingAd = j;
+    }
+  } catch (e) { adInterrupted = adInterrupted || false; }
   const toChapter = d.phase === 'chapter' && S.ch >= 1;
+  /* 先向平台核对任务状态：平台记录为已完成，才补发待发奖励（不凭本地标记自行发放） */
+  let grantedMsg = '';
+  if (pendingAd) {
+    await refreshAdState();
+    if (adRewardDone) {
+      if (!toChapter && pendingAd.type === 'swap') {
+        S.swapsLeft++;
+        grantedMsg = '广告奖励已补发：换一批 +1 次';
+      } else if (!toChapter && pendingAd.type === 'tianming') {
+        tianmingBoost = true;
+        rollFaction();
+        grantedMsg = '广告奖励已补发：天命临身——本批贵人云集';
+      } else if (toChapter && pendingAd.type === 'jinnang') {
+        S.jinnang = true;
+        grantedMsg = '广告奖励已补发：锦囊已备下';
+      } else if (toChapter && pendingAd.type === 'rewind' && pendingAd.snap) {
+        const snap = pendingAd.snap;
+        S.health = snap.health; S.troops = snap.troops; S.sec = snap.sec; S.merit = snap.merit;
+        S.scenes = snap.scenes; S.taunts = snap.taunts; S.personalFail = snap.personalFail;
+        S.selfStreak = snap.selfStreak; S.bios = snap.bios; S.flags = snap.flags; S.attrs = snap.attrs;
+        S.deadPending = false; S.gamble = false;
+        S.rewindLeft = Math.max(0, (S.rewindLeft || 0) - 1);
+        rewindChapterUsed = S.ch;
+        grantedMsg = '广告奖励已补发：改命成功——回到抉择之前';
+      }
+    }
+  }
   if (toChapter) {
     showScreen('chapter');
     restoreChapterView();
-    refreshAdState();
-    if (adInterrupted) chAdToast('上次广告中断了，进度已恢复到看广告之前');
+    if (!pendingAd) refreshAdState();
+    if (grantedMsg) chAdToast(grantedMsg);
+    else if (adInterrupted) chAdToast('上次广告中断了，进度已恢复到看广告之前');
   } else {
     showScreen('draft');
     renderDraft();
-    refreshAdState();
-    if (adInterrupted) adToast('上次广告中断了，进度已恢复到看广告之前');
+    if (!pendingAd) refreshAdState();
+    if (grantedMsg) adToast(grantedMsg);
+    else if (adInterrupted) adToast('上次广告中断了，进度已恢复到看广告之前');
   }
   __restoring = false;
   saveGame(toChapter ? 'chapter' : 'draft');
@@ -1966,6 +2019,10 @@ function loadRecords() {
   try { const a = JSON.parse(localStorage.getItem(RECORDS_KEY)); return Array.isArray(a) ? a : []; }
   catch (e) { return []; }
 }
+function saveRecords(list) {
+  try { localStorage.setItem(RECORDS_KEY, JSON.stringify(list)); } catch (e) {}
+  cloudPush(RECORDS_KEY, JSON.stringify(list));  /* v5.10：云端镜像 */
+}
 function pushRecord(endingId) {
   if (S.__recorded) return;  /* 同一局只记一次 */
   S.__recorded = true;
@@ -1978,7 +2035,7 @@ function pushRecord(endingId) {
       troops: S.troops, fame: S.sec.fame, fate: S.fate ? S.fate.name : ''
     });
     list.sort((a, b) => (b.score - a.score) || (a.ts - b.ts));
-    localStorage.setItem(RECORDS_KEY, JSON.stringify(list.slice(0, 100)));
+    saveRecords(list.slice(0, 100));
   } catch (e) {}
 }
 function fmtRecTime(ts) {
@@ -2021,6 +2078,7 @@ $('btn-records-clear').onclick = () => {
     return;
   }
   try { localStorage.removeItem(RECORDS_KEY); } catch (e) {}
+  cloudPush(RECORDS_KEY, '[]');  /* v5.10：云端一并清空，防止下次启动合并时复活 */
   __clearArm = false;
   btn.textContent = '清空全部记录';
   renderRecords();
@@ -2035,7 +2093,7 @@ function loadCollection() {
   } catch (e) {}
   return { endings:{}, people:{}, ach:{}, fates:{}, locks:0, runs:0 };
 }
-function saveCollection(c) { try { localStorage.setItem(COLLECTION_KEY, JSON.stringify(c)); } catch (e) {} }
+function saveCollection(c) { try { localStorage.setItem(COLLECTION_KEY, JSON.stringify(c)); } catch (e) {} cloudPush(COLLECTION_KEY, JSON.stringify(c)); /* v5.10：云端镜像（站外无 SDK 时静默跳过） */ }
 let __toastTimer = null;
 function showGameToast(msg) {
   const t = $('g-toast');
@@ -2100,6 +2158,94 @@ function collectEnding(endingId) {
   if (S.flags.includes('luBuSaved')) unlockAch('saveLuBu');
   if (endingId !== 'disease' && endingId !== 'diedWar' && S.health >= 80) unlockAch('healthy');
 }
+
+/* ---------- v5.10：战绩/图鉴云端镜像（ColorboxAI.cloudSave，按用户+活动隔离） ----------
+ * 本地 localStorage 仍是主存；虎扑容器可能清理 webview 存储（已有玩家反馈战绩/成就丢失），
+ * 故同步一份到云端：写入走节流推送（同 key ≥3.2s 合并），启动时拉取合并——
+ * 战绩按 ts 并集、图鉴结局取高分/人物成就天命取并集/计数取大。本地独有数据自动补传。
+ * 站外无 SDK 时 cloudReady() 为 false，全部静默跳过，不影响本地功能。 */
+function cloudReady() {
+  return !!(window.ColorboxAI && window.ColorboxAI.cloudSave &&
+    typeof window.ColorboxAI.cloudSave.getValue === 'function' &&
+    typeof window.ColorboxAI.cloudSave.setValue === 'function');
+}
+const __cloudLast = {}, __cloudTimer = {}, __cloudVal = {};
+function cloudPush(key, value) {
+  if (!cloudReady()) return;
+  __cloudVal[key] = value;
+  const wait = Math.max(0, 3200 - (Date.now() - (__cloudLast[key] || 0)));
+  clearTimeout(__cloudTimer[key]);
+  __cloudTimer[key] = setTimeout(async () => {
+    __cloudLast[key] = Date.now();
+    try { await window.ColorboxAI.cloudSave.setValue({ key, value: __cloudVal[key] }); } catch (e) {}
+  }, wait);
+}
+async function cloudPull(key) {
+  if (!cloudReady()) return null;
+  try {
+    const r = await window.ColorboxAI.cloudSave.getValue({ key });
+    if (r && r.code === 200 && typeof r.data === 'string' && r.data) return r.data;
+  } catch (e) {}
+  return null;
+}
+function mergeRecords(local, remote) {
+  const byTs = new Map();
+  for (const r of [...(remote || []), ...(local || [])]) { if (r && r.ts) byTs.set(r.ts, r); }
+  return [...byTs.values()].sort((a, b) => (b.score - a.score) || (a.ts - b.ts)).slice(0, 100);
+}
+function mergeCollection(local, remote) {
+  const out = { endings: {}, people: {}, ach: {}, fates: {}, locks: 0, runs: 0 };
+  for (const src of [remote || {}, local || {}]) {
+    for (const [id, v] of Object.entries(src.endings || {})) {
+      const cur = out.endings[id];
+      if (!cur) out.endings[id] = { ts: v.ts, score: v.score };
+      else if ((v.score || 0) > (cur.score || 0)) out.endings[id] = { ts: cur.ts || v.ts, score: v.score };
+    }
+    for (const k of ['people', 'ach', 'fates']) {
+      for (const [id, ts] of Object.entries(src[k] || {})) {
+        if (!out[k][id] || ts < out[k][id]) out[k][id] = ts;
+      }
+    }
+    out.locks = Math.max(out.locks, src.locks || 0);
+    out.runs = Math.max(out.runs, src.runs || 0);
+  }
+  return out;
+}
+async function initCloudSync() {
+  if (!cloudReady()) return;
+  try {
+    const recStr = await cloudPull(RECORDS_KEY);
+    if (recStr) {
+      let remote = null;
+      try { remote = JSON.parse(recStr); } catch (e) {}
+      if (Array.isArray(remote)) {
+        const merged = mergeRecords(loadRecords(), remote);
+        const mStr = JSON.stringify(merged);
+        if (mStr !== JSON.stringify(loadRecords())) { try { localStorage.setItem(RECORDS_KEY, mStr); } catch (e) {} }
+        if (mStr !== recStr) cloudPush(RECORDS_KEY, mStr);
+      }
+    } else {
+      const l = loadRecords();
+      if (l.length) cloudPush(RECORDS_KEY, JSON.stringify(l));
+    }
+    const colStr = await cloudPull(COLLECTION_KEY);
+    if (colStr) {
+      let remote = null;
+      try { remote = JSON.parse(colStr); } catch (e) {}
+      if (remote && typeof remote === 'object') {
+        const merged = mergeCollection(loadCollection(), remote);
+        const mStr = JSON.stringify(merged);
+        if (mStr !== JSON.stringify(loadCollection())) saveCollection(merged);
+        else if (mStr !== colStr) cloudPush(COLLECTION_KEY, mStr);
+      }
+    } else {
+      const c = loadCollection();
+      if (c.runs || Object.keys(c.endings).length || Object.keys(c.people).length) cloudPush(COLLECTION_KEY, JSON.stringify(c));
+    }
+  } catch (e) {}
+}
+initCloudSync();
+
 const ENDING_HINTS = {
   disease:'提示：身体先垮了', diedWar:'提示：亲征太多，命悬一线', founder:'称王线 · 开国之君',
   halfTalk:'提示：狂言与称王之间', perish:'提示：称王未成', huangYan:'提示：狂言成真',
@@ -2176,10 +2322,12 @@ let rewindSnapshot = null, rewindChapterUsed = 0, rewindAvailable = false;
 function vataskReady() {
   return !!(window.ColorboxAI && window.ColorboxAI.vatask && typeof window.ColorboxAI.vatask.completeRewardVideo === 'function');
 }
-async function playRewardAd() {
+async function playRewardAd(kind, snap) {
   if (adBusy || adRewardDone || !vataskReady()) return false;
   /* v5.5：拉起广告前先落盘并留标记——容器看完广告可能重载页面，回来靠存档恢复进度 */
-  try { localStorage.setItem(PENDING_AD_KEY, String(Date.now())); } catch (e) {}
+  /* v5.10：标记升级为 JSON，记下待发奖励类型（改命附带抉择前快照）；
+     若页面被容器销毁、回调永不返回，重载后由 restoreGame 凭平台任务状态核对补发 */
+  try { localStorage.setItem(PENDING_AD_KEY, JSON.stringify({ type: kind || '', ts: Date.now(), snap: snap || null })); } catch (e) {}
   saveGame(window.__curScreen === 'chapter' ? 'chapter' : 'draft');
   adBusy = true; lastAdMsg = ''; syncAllAdBtns();
   let ok = false;
@@ -2245,7 +2393,7 @@ async function refreshAdState() {
 }
 $('btn-ad-swap').onclick = async () => {
   if (adBusy || adRewardDone || S.person) return;
-  if (await playRewardAd()) {
+  if (await playRewardAd('swap')) {
     S.swapsLeft++;
     adToast('已获得 1 次换一批');
     renderDraft();
@@ -2253,7 +2401,7 @@ $('btn-ad-swap').onclick = async () => {
 };
 $('btn-ad-tianming').onclick = async () => {
   if (adBusy || adRewardDone || S.person) return;
-  if (await playRewardAd()) {
+  if (await playRewardAd('tianming')) {
     tianmingBoost = true;
     rollFaction();
     renderDraft();
@@ -2262,7 +2410,7 @@ $('btn-ad-tianming').onclick = async () => {
 };
 $('btn-ad-jinnang').onclick = async () => {
   if (adBusy || adRewardDone || S.jinnang) return;
-  if (await playRewardAd()) {
+  if (await playRewardAd('jinnang')) {
     S.jinnang = true;
     saveGame('chapter');
     chAdToast('锦囊已备下，下个判定成算大增');
@@ -2271,7 +2419,7 @@ $('btn-ad-jinnang').onclick = async () => {
 };
 $('btn-ad-rewind').onclick = async () => {
   if (adBusy || adRewardDone || !rewindAvailable || !rewindSnapshot) return;
-  if (await playRewardAd()) {
+  if (await playRewardAd('rewind', JSON.parse(JSON.stringify(rewindSnapshot)))) {
     const snap = rewindSnapshot;
     S.health = snap.health; S.troops = snap.troops; S.sec = snap.sec; S.merit = snap.merit;
     S.scenes = snap.scenes; S.taunts = snap.taunts; S.personalFail = snap.personalFail;
