@@ -321,7 +321,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
       <div class="poster-ending" id="poster-ending"></div>
       <div class="poster-score" id="poster-score"></div>
       <div class="poster-share" id="poster-share"></div>
-      <canvas id="poster-canvas" width="720" height="1040" style="width:100%;border-radius:10px;margin-top:12px;display:block;"></canvas>
+      <canvas id="poster-canvas" width="720" height="960" style="width:100%;border-radius:10px;margin-top:12px;display:block;"></canvas>
       <div class="poster-actions">
         <button class="btn-primary" id="btn-copy">发帖分享</button>
         <button class="btn-ghost" id="btn-records-poster">战绩榜</button>
@@ -2317,8 +2317,10 @@ function drawPosterCanvas() {
   if (!cv || !S.endingId) return;
   const ctx = cv.getContext('2d');
   if (!ctx) return;
-  const W = 720, H = 1040;
+  const W = 720, H = 960;
   const def = ENDING_DEFS[S.endingId] || { name: '', quote: '' };
+  const SERIF = '"Noto Serif SC","Songti SC",serif';
+  const SANS = '"PingFang SC","Microsoft YaHei",sans-serif';
   const grad = ctx.createLinearGradient(0, 0, 0, H);
   grad.addColorStop(0, '#F9F3E4'); grad.addColorStop(1, '#EEE0C2');
   ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
@@ -2327,82 +2329,104 @@ function drawPosterCanvas() {
   ctx.textAlign = 'center';
   /* 印章 */
   ctx.fillStyle = '#B03A1E';
-  ctx.fillRect(W - 128, 44, 76, 76);
+  ctx.fillRect(W - 116, 46, 64, 64);
   ctx.fillStyle = '#FFF6E0';
-  ctx.font = '700 30px "Noto Serif SC","Songti SC",serif';
-  ctx.fillText('拼', W - 90, 76);
-  ctx.fillText('将', W - 90, 110);
-  /* 标题 */
-  ctx.fillStyle = '#3A2A16';
-  ctx.font = '700 42px "Noto Serif SC","Songti SC",serif';
-  ctx.fillText('《乱世拼将》· 此人列传', W / 2, 96);
-  let y = 140;
-  if (hupuNickname) {
-    ctx.fillStyle = '#8a6d1f';
-    ctx.font = '26px "Noto Serif SC","Songti SC",serif';
-    ctx.fillText(`虎扑主公：${hupuNickname}`, W / 2, y);
-    y += 14;
-  }
-  /* 结局 */
-  ctx.fillStyle = '#8E2F16';
-  ctx.font = '700 58px "Noto Serif SC","Songti SC",serif';
-  ctx.fillText(def.name, W / 2, y + 62);
-  y += 84;
-  if (def.quote) {
-    ctx.fillStyle = '#5d4a26';
-    const q = `「${def.quote}」`;
-    let qSize = 27;  /* 长引言自动缩字号防溢出 */
-    ctx.font = `italic ${qSize}px "Noto Serif SC","Songti SC",serif`;
-    while (ctx.measureText(q).width > W - 90 && qSize > 17) {
-      qSize -= 1;
-      ctx.font = `italic ${qSize}px "Noto Serif SC","Songti SC",serif`;
-    }
-    ctx.fillText(q, W / 2, y + 8);
-    y += 22;
-  }
-  /* 分隔线 */
-  ctx.strokeStyle = 'rgba(160,124,32,.6)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(90, y + 22); ctx.lineTo(W - 90, y + 22); ctx.stroke();
-  y += 58;
-  /* 数据行 */
-  ctx.fillStyle = '#3A2A16';
-  ctx.font = '28px "Noto Serif SC","Songti SC",serif';
-  const rows = [
-    `${S.title} · ${S.route}路线`,
-    `霸业值 ${S.ovr} ｜ 德不配位 ${S.deBuPei} 项`,
-    `终局兵马 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功业 ${S.merit} ｜ 名场面 ${S.scenes}`,
-    S.fate ? `本局天命：${S.fate.name}` : ''
-  ].filter(Boolean);
-  for (const r of rows) { ctx.fillText(r, W / 2, y); y += 42; }
-  /* 评分 */
-  ctx.fillStyle = '#8E2F16';
-  ctx.font = '700 62px "Noto Serif SC","Songti SC",serif';
-  ctx.fillText(`霸业评分 ${S.score} 分`, W / 2, y + 44);
-  y += 84;
-  /* 列传摘录 */
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#5d4a26';
-  ctx.font = '700 26px "Noto Serif SC","Songti SC",serif';
-  ctx.fillText('【列传摘录】', 70, y);
-  y += 36;
-  ctx.font = '24px "Noto Serif SC","Songti SC",serif';
-  ctx.fillStyle = '#4a3a20';
-  let lines = 0;
-  for (const b of S.bios) {
-    for (const ln of wrapCanvasLines(ctx, b, W - 140)) {
-      if (lines >= 9 || y > H - 110) break;
-      ctx.fillText(ln, 70, y);
-      y += 34; lines++;
-    }
-    if (lines >= 9 || y > H - 110) break;
-  }
-  if (!S.bios.length) { ctx.fillText('（此局无列传）', 70, y); y += 34; }
-  /* 页脚 */
-  ctx.textAlign = 'center';
+  ctx.font = `700 26px ${SERIF}`;
+  ctx.fillText('拼', W - 84, 74);
+  ctx.fillText('将', W - 84, 102);
+  /* 眉题（小字） */
   ctx.fillStyle = '#8a6d1f';
-  ctx.font = '22px "Noto Serif SC","Songti SC",serif';
+  ctx.font = `24px ${SANS}`;
+  ctx.fillText('乱 世 拼 将 · 此 人 列 传', W / 2, 92);
+  let y = 128;
+  if (hupuNickname) {
+    ctx.fillStyle = '#97835a';
+    ctx.font = `21px ${SANS}`;
+    ctx.fillText(`虎扑主公：${hupuNickname}`, W / 2, y);
+    y += 26;
+  }
+  /* 结局名（主角，大号宋体） */
+  ctx.fillStyle = '#8E2F16';
+  ctx.font = `700 84px ${SERIF}`;
+  ctx.fillText(def.name, W / 2, y + 108);
+  y += 148;
+  if (def.quote) {
+    ctx.fillStyle = '#6d5836';
+    const q = `「${def.quote}」`;
+    let qSize = 26;
+    ctx.font = `italic ${qSize}px ${SERIF}`;
+    while (ctx.measureText(q).width > W - 110 && qSize > 16) {
+      qSize -= 1;
+      ctx.font = `italic ${qSize}px ${SERIF}`;
+    }
+    ctx.fillText(q, W / 2, y);
+    y += 26;
+  }
+  /* 菱形分隔 */
+  ctx.strokeStyle = 'rgba(160,124,32,.55)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(110, y + 26); ctx.lineTo(W / 2 - 18, y + 26); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W / 2 + 18, y + 26); ctx.lineTo(W - 110, y + 26); ctx.stroke();
+  ctx.save();
+  ctx.translate(W / 2, y + 26); ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = '#C9A227'; ctx.fillRect(-6, -6, 12, 12);
+  ctx.restore();
+  y += 74;
+  /* 评分（数字特大＋小字标签） */
+  ctx.fillStyle = '#97835a';
+  ctx.font = `22px ${SANS}`;
+  ctx.fillText('霸 业 评 分', W / 2, y);
+  const num = String(S.score);
+  ctx.font = `700 118px ${SERIF}`;
+  const numW = ctx.measureText(num).width;
+  ctx.font = `700 40px ${SERIF}`;
+  const fenW = ctx.measureText(' 分').width;
+  const totalW = numW + fenW;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#8E2F16';
+  ctx.font = `700 118px ${SERIF}`;
+  ctx.fillText(num, (W - totalW) / 2, y + 106);
+  ctx.font = `700 40px ${SERIF}`;
+  ctx.fillText(' 分', (W - totalW) / 2 + numW, y + 106);
+  ctx.textAlign = 'center';
+  y += 158;
+  /* 数据（无衬线，两行收尾） */
+  ctx.fillStyle = '#4a3a20';
+  ctx.font = `26px ${SANS}`;
+  ctx.fillText(`${S.title} · ${S.route}路线`, W / 2, y);
+  y += 42;
+  ctx.fillStyle = '#6d5836';
+  ctx.font = `24px ${SANS}`;
+  ctx.fillText(`兵马 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功业 ${S.merit}`, W / 2, y);
+  y += 40;
+  if (S.fate) {
+    ctx.fillStyle = '#8a6d1f';
+    ctx.font = `21px ${SANS}`;
+    ctx.fillText(`天命 · ${S.fate.name}`, W / 2, y);
+    y += 34;
+  }
+  /* 列传（最多 3 条，各一行截断） */
+  y += 22;
+  ctx.fillStyle = '#97835a';
+  ctx.font = `21px ${SANS}`;
+  ctx.fillText('列 传', W / 2, y);
+  y += 40;
+  ctx.fillStyle = '#4a3a20';
+  ctx.font = `24px ${SERIF}`;
+  let shown = 0;
+  for (const b of S.bios) {
+    if (shown >= 3) break;
+    let t = String(b);
+    while (ctx.measureText(t).width > W - 150 && t.length > 4) t = t.slice(0, -2);
+    if (t !== String(b)) t += '…';
+    ctx.fillText(t, W / 2, y);
+    y += 38; shown++;
+  }
+  if (!shown) { ctx.fillText('（此局无列传）', W / 2, y); y += 38; }
+  /* 页脚 */
+  ctx.fillStyle = '#a08c5f';
+  ctx.font = `20px ${SANS}`;
   const dt = new Date();
-  ctx.fillText(`作者：lpy ｜ ${dt.getFullYear()}-${dt.getMonth() + 1}-${dt.getDate()}`, W / 2, H - 52);
+  ctx.fillText(`作者：lpy ｜ ${dt.getFullYear()}-${dt.getMonth() + 1}-${dt.getDate()}`, W / 2, H - 48);
 }
 
 let sharing = false;
