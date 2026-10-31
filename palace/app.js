@@ -120,7 +120,7 @@ function renderMinePanel() {
       : `<div class="attr-cell empty"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">—</div></div>`).join('')}</div>`;
 }
 /* 一期头像（S/A 21 人）精灵图位置：7 列 × 3 行，行序见 v4-assets */
-const CH_ART = {"1": "./assets/ch-art-1.webp", "2": "./assets/ch-art-1.webp", "3": "./assets/ch-art-2.webp", "4": "./assets/ch-art-3.webp", "5": "./assets/ch-art-3.webp", "6": "./assets/ch-art-3.webp", "7": "./assets/ch-art-4.webp", "8": "./assets/ch-art-4.webp", "9": "./assets/ch-art-4.webp", "10": "./assets/ch-art-5.webp", "11": "./assets/ch-art-5.webp", "12": "./assets/ch-art-5.webp"};
+const CH_ART = {"1": "./assets/ch-art-1.webp", "2": "./assets/ch-art-2.webp", "3": "./assets/ch-art-3.webp", "4": "./assets/ch-art-4.webp", "5": "./assets/ch-art-5.webp", "6": "./assets/ch-art-6.webp", "7": "./assets/ch-art-7.webp", "8": "./assets/ch-art-8.webp", "9": "./assets/ch-art-9.webp", "10": "./assets/ch-art-10.webp", "11": "./assets/ch-art-11.webp", "12": "./assets/ch-art-12.webp"};
 const AVATAR_POS = {};
 const AVATAR_POS2 = {"陆挽真": "0.0% 0.0%", "沈静姝": "20.0% 0.0%", "苏锦瑟": "40.0% 0.0%", "赵明仪": "60.0% 0.0%", "程又青": "80.0% 0.0%", "贺兰敏": "100.0% 0.0%", "温叙白": "0.0% 25.0%", "林晚照": "20.0% 25.0%", "许清晏": "40.0% 25.0%", "秦望舒": "60.0% 25.0%", "柳新雁": "80.0% 25.0%", "方绮罗": "100.0% 25.0%", "郑含章": "0.0% 50.0%", "白露未": "20.0% 50.0%", "高福宁": "40.0% 50.0%", "陶夭夭": "60.0% 50.0%", "孟姜梨": "80.0% 50.0%", "罗绛仙": "100.0% 50.0%", "豆蔻": "0.0% 75.0%", "韩玉簪": "20.0% 75.0%", "卫明珠": "40.0% 75.0%", "春桃": "60.0% 75.0%", "阿箬": "80.0% 75.0%", "孙巧姐": "100.0% 75.0%", "钱宝珠": "0.0% 100.0%", "杜若": "20.0% 100.0%", "姜蜜儿": "40.0% 100.0%", "胡三姐": "60.0% 100.0%", "田穗儿": "80.0% 100.0%", "莫问秋": "100.0% 100.0%"};
 function avatarHTML(name, cls) {
@@ -423,7 +423,7 @@ function enterChapter(n) {
   const artEl = $('ch-art');
   if (typeof CH_ART !== 'undefined' && CH_ART[n]) { artEl.style.backgroundImage = `url("${CH_ART[n]}")`; artEl.classList.remove('hidden'); }
   else artEl.classList.add('hidden');
-  $('ch-num').textContent = `第 ${n} / 20 章`;
+  $('ch-num').textContent = `第 ${n} / 12 章`;
   $('ch-name').textContent = ch.name;
   $('ch-brief').innerHTML = `${brief}<span class="deduct">（${note}，当前恩宠 ${S.health}）</span>${checksLine}`;
   $('ch-result').classList.add('hidden');
@@ -441,7 +441,7 @@ function renderChapterOptions(ch) {
   gBtn.classList.toggle('hidden', !hasCheck);
   gBtn.classList.toggle('on', S.gamble);
   gBtn.textContent = S.gamble
-    ? '🎲 赌一把：开（成功率减半 · 收益与功业翻倍 · 失败代价加倍）'
+    ? '🎲 赌一把：开（成功率减半 · 收益与功绩翻倍 · 失败代价加倍）'
     : '🎲 赌一把：关（点此开启，搏一把）';
   gBtn.onclick = () => { S.gamble = !S.gamble; renderChapterOptions(ch); };
   const box = $('ch-options');
@@ -479,7 +479,7 @@ function refreshChapterUI() {
     `<span class="res ${S.health < 30 ? 'warn' : ''}">❤ 恩宠 ${S.health}</span>` +
     `<span class="res">⚔️ 人脉 ${S.troops}</span>` +
     `<span class="res">声望 ${S.sec.fame}</span>` +
-    `<span class="res">功业 ${S.merit}</span>` +
+    `<span class="res">功绩 ${S.merit}</span>` +
     `<span class="res">名场面 ${S.scenes}</span>` +
     `<span class="res">任性 ${S.taunts}</span>` +
     (S.selfStreak >= 2 ? `<span class="res warn">自保连选 ${S.selfStreak}</span>` : '') +
@@ -545,8 +545,8 @@ function chooseChapterOption(opt) {
   res.classList.remove('hidden');
   /* v2：战报分段揭示——先结果、再得失、最后判词句，继续按钮最后出现 */
   $('ch-result-text').innerHTML =
-    `<div class="r-head reveal" id="rv-1">${head}${branch.tier && !ch.noMerit ? ` · 功业档：${branch.tier}` : ''}</div>` +
-    `<div class="r-after reveal" id="rv-2">本章得失：${effectSummary(branch.effects)}${extraNote ? '｜' + extraNote : ''}｜当前 恩宠 ${S.health} · 人脉 ${S.troops} · 声望 ${S.sec.fame} · 功业 ${S.merit} · 任性 ${S.taunts}${S.flags.length ? ' · 标记：' + S.flags.join(' / ') : ''}</div>` +
+    `<div class="r-head reveal" id="rv-1">${head}${branch.tier && !ch.noMerit ? ` · 功绩档：${branch.tier}` : ''}</div>` +
+    `<div class="r-after reveal" id="rv-2">本章得失：${effectSummary(branch.effects)}${extraNote ? '｜' + extraNote : ''}｜当前 恩宠 ${S.health} · 人脉 ${S.troops} · 声望 ${S.sec.fame} · 功绩 ${S.merit} · 任性 ${S.taunts}${S.flags.length ? ' · 标记：' + S.flags.join(' / ') : ''}</div>` +
     (bio ? `<div class="r-bio reveal" id="rv-3">判词添一句：「${bio}」</div>` : '');
   rewindAvailable = success === false && !!rewindSnapshot && S.rewindLeft > 0 && rewindChapterUsed !== S.ch;
   syncAllAdBtns();
@@ -708,7 +708,7 @@ function finishEnding(endingId) {
   $('ending-quote').textContent = def.quote ? `「${def.quote}」` : '';
   $('ending-stats').innerHTML =
     `${S.title} · ${S.route} ｜ 命运值 ${S.ovr} ｜ 根基尚浅 ${S.deBuPei} 项<br>` +
-    `终局人脉 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功业分 ${S.merit} ｜ 名场面 ${S.scenes} ｜ 任性 ${S.taunts} 次`;
+    `终局人脉 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功绩分 ${S.merit} ｜ 名场面 ${S.scenes} ｜ 任性 ${S.taunts} 次`;
   $('ending-score').textContent = `命运评分 ${S.score} 分`;
   pushRecord(endingId);  /* v5.7：本局成绩记入本地纪事榜 */
   collectEnding(endingId);  /* v5.8：结局谱点亮 + 终局系成就判定 */
@@ -812,7 +812,7 @@ function refreshContinueBtn() {
       const t = new Date(d.ts);
       const hh = String(t.getHours()).padStart(2, '0'), mm = String(t.getMinutes()).padStart(2, '0');
       info.textContent = d.phase === 'chapter'
-        ? `上局进度：第 ${d.S.ch} / 20 章 · ${hh}:${mm} 存档`
+        ? `上局进度：第 ${d.S.ch} / 12 章 · ${hh}:${mm} 存档`
         : `上局进度：习技 ${d.S.picks} / 8 · ${hh}:${mm} 存档`;
     }
   }
@@ -828,7 +828,7 @@ function restoreChapterView() {
   const artEl = $('ch-art');
   if (typeof CH_ART !== 'undefined' && CH_ART[n]) { artEl.style.backgroundImage = `url("${CH_ART[n]}")`; artEl.classList.remove('hidden'); }
   else artEl.classList.add('hidden');
-  $('ch-num').textContent = `第 ${n} / 20 章`;
+  $('ch-num').textContent = `第 ${n} / 12 章`;
   $('ch-name').textContent = ch.name;
   $('ch-brief').innerHTML = `${brief}<span class="deduct">（进度已恢复 · 当前恩宠 ${S.health}）</span>${checksLine}`;
   $('ch-result').classList.add('hidden');
@@ -954,7 +954,7 @@ function renderRecords() {
       <div style="min-width:34px;font-weight:700;">${medal[i] || (i + 1) + '.'}</div>
       <div style="flex:1;">
         <div><b>${r.score} 分</b> · ${r.ending}${r.title ? ` · ${r.title}` : ''}</div>
-        <div class="hint" style="margin:2px 0 0;">${r.route || ''}线 · 功业 ${r.merit} · 名场面 ${r.scenes}${r.fate ? ` · 时运「${r.fate}」` : ''} · ${fmtRecTime(r.ts)}</div>
+        <div class="hint" style="margin:2px 0 0;">${r.route || ''}线 · 功绩 ${r.merit} · 名场面 ${r.scenes}${r.fate ? ` · 时运「${r.fate}」` : ''} · ${fmtRecTime(r.ts)}</div>
       </div>
     </div>`).join('');
 }
@@ -1436,12 +1436,12 @@ async function drawPosterCanvas() {
   ctx.fillRect(W - 118, 40, 58, 58);
   ctx.fillStyle = '#FFF6E0';
   ctx.font = `25px ${BRUSH}`;
-  ctx.fillText('拼', W - 89, 67);
-  ctx.fillText('将', W - 89, 93);
+  ctx.fillText('宫', W - 89, 67);
+  ctx.fillText('闱', W - 89, 93);
   /* 眉题＋昵称 */
   ctx.fillStyle = '#8a6d1f';
   ctx.font = `24px ${SANS}`;
-  ctx.fillText('乱 世 拼 将 · 此 人 列 传', CX, 88);
+  ctx.fillText('后 宫 生 存 法 则 · 命 运 判 词', CX, 88);
   if (hupuNickname) {
     ctx.fillStyle = '#8d7748';
     ctx.font = `21px ${SANS}`;
@@ -1566,14 +1566,14 @@ async function drawPosterCanvas() {
   drawCurl(ctx, CX - 128, 356, -1);
   drawCurl(ctx, CX + 128, 356, 1);
   /* 评分牌匾 */
-  drawPlaque(ctx, CX, 402, 176, '霸 业 评 分', `23px ${SANS}`, '#7a5c14');
+  drawPlaque(ctx, CX, 402, 176, '命 运 评 分', `23px ${SANS}`, '#7a5c14');
   /* 数据（宋体） */
   ctx.fillStyle = '#453723';
   ctx.font = `26px ${SERIF}`;
   ctx.fillText(`${S.title} · ${S.route}路线`, CX, 640);
   ctx.fillStyle = '#63502c';
   ctx.font = `24px ${SERIF}`;
-  ctx.fillText(`人脉 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功业 ${S.merit}`, CX, 682);
+  ctx.fillText(`人脉 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功绩 ${S.merit}`, CX, 682);
   let bioY = 740;
   if (S.fate) {
     ctx.fillStyle = '#8a6d1f';
@@ -1581,7 +1581,7 @@ async function drawPosterCanvas() {
     ctx.fillText(`时运 · ${S.fate.name}`, CX, 716);
     bioY = 756;
   }
-  drawPlaque(ctx, CX, bioY, 128, '列 传', `22px ${SANS}`, '#7a5c14');
+  drawPlaque(ctx, CX, bioY, 128, '判 词', `22px ${SANS}`, '#7a5c14');
   ctx.fillStyle = '#42331b';
   ctx.font = `24px ${SERIF}`;
   let ly = bioY + 48, shown = 0;
