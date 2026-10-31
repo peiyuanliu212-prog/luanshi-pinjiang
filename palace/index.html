@@ -154,7 +154,7 @@ body::after { content: ''; position: fixed; left: 0; right: 0; bottom: 0; height
   background: #b03a2e; color: #fff8ec; font-family: "Noto Serif SC", "Songti SC", serif; font-weight: 900;
   font-size: 15px; line-height: 1.15; text-align: center; border-radius: 7px; transform: rotate(4deg);
   box-shadow: 0 2px 6px rgba(120, 40, 25, .35); opacity: .92; z-index: 2; }
-.hero-title { font-size: clamp(31px, 8.8vw, 40px); color: #2b2118; }
+.hero-title { font-size: clamp(24px, 7.2vw, 36px); letter-spacing: 1px; white-space: nowrap; color: #2b2118; }
 h2 { position: relative; padding-left: 12px; }
 h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; width: 4px; border-radius: 2px; background: linear-gradient(#c8452c, #C9A227); }
 .btn-primary { letter-spacing: 1px; box-shadow: 0 4px 12px rgba(200, 60, 30, .28), inset 0 1px 0 rgba(255,255,255,.35); }
@@ -191,6 +191,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
 @keyframes tierReveal { 0% { transform: scale(.93); } 55% { transform: scale(1.025); } 100% { transform: scale(1); } }
 @keyframes tierShine { 0% { background-position: 130% 0; } 45% { background-position: -130% 0; } 100% { background-position: -130% 0; } }
 @font-face{font-family:'PosterBrush';src:url(./poster-brush.woff2) format('woff2') format('woff2');font-weight:400;font-display:swap;}
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 </style>
 </head>
 <body>
