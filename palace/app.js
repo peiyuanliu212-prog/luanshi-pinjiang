@@ -1,4 +1,4 @@
-/* 《后宫生存法则》· 三国版 —— app.js
+/* 《后宫生存法则》· 宫廷版 —— app.js
  * 流程：首页 → 设定（路线+出身）→ 习技 → 揭幕 → 十二章（事件穿插）→ 结局 → 海报
  * 依《开发任务书 v1.1》§1/§3/§4/§7/§8/§9 实现。纯静态、无存档。 */
 
@@ -31,7 +31,7 @@ function showScreen(name) {
   window.__curScreen = name;
   document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
   $('screen-' + name).classList.remove('hidden');
-  const label = { home:'《后宫生存法则》', setup:'设定', draft:'习技', unveil:'揭幕', chapter:'乱世二十章', ending:'结局', poster:'此人判词', records:'我的纪事榜', gallery:'人物录 · 成就' }[name];
+  const label = { home:'《后宫生存法则》', setup:'设定', draft:'习技', unveil:'揭幕', chapter:'宫中十二章', ending:'结局', poster:'此人判词', records:'我的纪事榜', gallery:'人物录 · 成就' }[name];
   $('progress').textContent = label || '';
   window.scrollTo(0, 0);
 }
@@ -114,13 +114,13 @@ function renderMinePanel() {
   const filled = {};
   for (const k of ATTR_KEYS) filled[k] = (k in S.attrs) ? S.attrs[k] : ROUTE_TEMPLATES[S.route][k];
   const est = computeOVR(S.route, filled);
-  el.innerHTML = `<div class="mine-title">🧩 我的拼图（已锁定 ${S.picks} / 5）｜预估总评 <b style="color:#E62B1E;">${est} / 100</b><span class="grade">${attrGrade(est)}</span>（未夺项按${S.route}底子估）</div>
+  el.innerHTML = `<div class="mine-title">🧩 我的拼图（已锁定 ${S.picks} / 8）｜预估总评 <b style="color:#E62B1E;">${est} / 100</b><span class="grade">${attrGrade(est)}</span>（未夺项按${S.route}底子估）</div>
     <div class="attr-grid">${ATTR_KEYS.map(k => (k in S.attrs)
       ? `<div class="attr-cell"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${S.attrs[k]}</div><div class="a-grade">${attrGrade(S.attrs[k])}</div></div>`
       : `<div class="attr-cell empty"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">—</div></div>`).join('')}</div>`;
 }
 /* 一期头像（S/A 21 人）精灵图位置：7 列 × 3 行，行序见 v4-assets */
-const CH_ART = {};
+const CH_ART = {"1": "./assets/ch-art-1.webp", "2": "./assets/ch-art-1.webp", "3": "./assets/ch-art-2.webp", "4": "./assets/ch-art-3.webp", "5": "./assets/ch-art-3.webp", "6": "./assets/ch-art-3.webp", "7": "./assets/ch-art-4.webp", "8": "./assets/ch-art-4.webp", "9": "./assets/ch-art-4.webp", "10": "./assets/ch-art-5.webp", "11": "./assets/ch-art-5.webp", "12": "./assets/ch-art-5.webp"};
 const AVATAR_POS = {};
 const AVATAR_POS2 = {"陆挽真": "0.0% 0.0%", "沈静姝": "20.0% 0.0%", "苏锦瑟": "40.0% 0.0%", "赵明仪": "60.0% 0.0%", "程又青": "80.0% 0.0%", "贺兰敏": "100.0% 0.0%", "温叙白": "0.0% 25.0%", "林晚照": "20.0% 25.0%", "许清晏": "40.0% 25.0%", "秦望舒": "60.0% 25.0%", "柳新雁": "80.0% 25.0%", "方绮罗": "100.0% 25.0%", "郑含章": "0.0% 50.0%", "白露未": "20.0% 50.0%", "高福宁": "40.0% 50.0%", "陶夭夭": "60.0% 50.0%", "孟姜梨": "80.0% 50.0%", "罗绛仙": "100.0% 50.0%", "豆蔻": "0.0% 75.0%", "韩玉簪": "20.0% 75.0%", "卫明珠": "40.0% 75.0%", "春桃": "60.0% 75.0%", "阿箬": "80.0% 75.0%", "孙巧姐": "100.0% 75.0%", "钱宝珠": "0.0% 100.0%", "杜若": "20.0% 100.0%", "姜蜜儿": "40.0% 100.0%", "胡三姐": "60.0% 100.0%", "田穗儿": "80.0% 100.0%", "莫问秋": "100.0% 100.0%"};
 function avatarHTML(name, cls) {
@@ -132,7 +132,7 @@ function avatarHTML(name, cls) {
 }
 function renderDraft() {
   renderMinePanel();
-  $('draft-count').textContent = `已习 ${S.picks} / 5`;
+  $('draft-count').textContent = `已习 ${S.picks} / 8`;
   $('btn-swap').textContent = `🔀 换一批（剩 ${S.swapsLeft} 次）`;
   $('btn-swap').disabled = S.swapsLeft <= 0 || !!S.person;
   const stage = $('draft-stage');
@@ -149,7 +149,7 @@ function renderDraft() {
           ${avatarHTML(p.name)}
           <div class="person-name">${p.name}<span class="grade">${attrGrade(povr)}</span></div>
           <div class="person-meta">${p.route} · ${RARITY_LABEL[p.tier]} · 总评 ${povr} / 100 · 衰减 ×${decay.toFixed(2)}</div>
-          <div class="person-top">${top3}</div></button>`;
+          <div class="person-top">${top3}</div>${p.trait ? `<div style="font-size:11px;color:#a07c20;margin-top:2px;">绝活「${p.trait}」</div>` : ''}</button>`;
       }).join('')}</div>`;
     stage.querySelectorAll('[data-person]').forEach(b => b.onclick = () => {
       S.person = S.faction.people.find(p => p.name === b.dataset.person);
@@ -162,7 +162,7 @@ function renderDraft() {
       <div class="attr-grid">${ATTR_KEYS.map(k => {
         const locked = k in S.attrs;
         const val = Math.max(30, Math.floor(all[k] * decay));
-        const over = val > ( (S.poolAttrs[p.name].physique + S.poolAttrs[p.name].nerve) / 2 + 30 );
+        const over = val > ( (S.poolAttrs[p.name].tipo + S.poolAttrs[p.name].xinji) / 2 + 30 );
         const origTag = (k === p.special && !locked && decay < 1) ? ` · 原 ${all[k]}` : '';
         return `<button class="attr-btn" data-attr="${k}" ${locked ? 'disabled' : ''}>
           <div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${locked ? S.attrs[k] : val}</div><div class="a-grade">${attrGrade(locked ? S.attrs[k] : val)}${origTag}</div></button>`;
@@ -186,7 +186,7 @@ function lockAttr(key) {
   if (p.tier === 'S') unlockAch('firstS');
   S.picks++;
   S.person = null;
-  if (S.picks >= 5) { finishDraft(); return; }
+  if (S.picks >= 8) { finishDraft(); return; }
   rollFaction();
   renderDraft();
 }
@@ -339,8 +339,8 @@ function selfPenalty(streak) {
 }
 
 /* ---------- 章节备套（v5.9 双简报：同章第二套简报+选项，结构与原套同构，每局随机抽） ---------- */
-const CHAPTER_ALTS = {};
-CHAPTERS.forEach((ch, i) => { const a = CHAPTER_ALTS[i + 1]; if (a) ch.alt = a; });
+const CHAPTER_ALTS = {"1": "分派的旨意晌午才到，你们在宫门口站了半日，鞋底都站热了。管事姑姑展开名册，一个名字一个名字往下念。同批的白露未缀在队尾，包袱带子忽然断了，东西撒了一地，前头的人，一个也没回头。", "10": "那日你替贵妃宫里送一匣首饰回去，顺手替沈静姝归置妆匣。指尖碰到匣底一块松动的木片，底下压着一封信，字迹是男子的，没有落款，第一行就是个亲昵得过了分的称呼。你只看了一行，就把木片按回去，站起来时，腿有点软。", "11": "万寿宴开席前夜，宫里静得反常。该送的礼送了，该递的话递了，每个人都回到了自己的位置上。你坐在灯下把这一年的人和事捋了一遍，捋到最后发现：棋盘上只剩你这一子，还没落下。", "12": "尘埃落定的那天早上，你醒得很早。这一程的是非恩怨，都有了说法，只剩你自己的去处还没定。往前，是接着争一条路；靠着，是寻个安稳；再不然，转身出这道宫门——三条路，都不回头。", "2": "天没亮透，请安的队伍已经跪满了院子。程又青站在廊下，声音不高，一字一字都砸在人心上：昨儿的错，今儿得有个说法。她环顾一周，目光最后落在你们新人身上：谁来说，错在哪儿？", "3": "领差事这日，针线房、茶水房、库房三处的人都来了，站在院里由着你们打量。程又青把三块木牌往桌上一扣：差事自己挑，挑中了，是好是歹都自己担着，往后别哭。", "4": "菊花开得正盛，贵妃的赏菊宴摆在临水亭子里，酒过两巡，丝竹声渐渐低下去。沈静姝忽然搁了筷子，笑着说新人里头多的是才艺好的，叫出来亮一亮，也给宴上添点意思。满席的眼睛，一齐往你们这边转。", "5": "那句闲话你是从两个小宫女的窃笑里听全的：深夜、御花园、侍卫，连衣裳的颜色都给你编派好了。偏这日你领了往冷宫送东西的差，刚走到门口，就见孟姜梨坐在门槛上晒太阳，她抬眼看你：这话头，我当年也听过。", "6": "年前最冷的一天，皇后宫里先送来一套赤金头面，未时刚过，贵妃宫里的人又捧着一匣南珠进了门。送礼的两个姑姑在院里打了个照面，笑得都十分客气。屋里只剩你和这两份礼，大眼瞪小眼。", "7": "你刚起身，院门就被叩响了。搜宫的来了三个人，话不多，径直奔着箱笼去。翻到最底层，主事的拈出一包东西，掂了掂，回头看你：这是什么，你自己心里清楚。满屋子的人，都在等你开口。", "8": "慈宁宫的药味，隔着两进院子都闻得见。太后这一病，六宫都得轮着去跟前尽孝，排班的单子贴出来，苦的、夜的几班没人认领。管事的把笔一搁：总得有人去，谁去？屋里静得听得见炭盆的响。", "9": "捎口信来的是个上了年纪的嬷嬷，她说冷宫那位如今查到了当年的下文，只差一个肯跑腿的人，把一封信送到该看的人手里。嬷嬷把话说得很慢：这忙帮是不帮，她不强求，就是怕你不知道干系。"};
+CHAPTERS.forEach((ch, i) => { const a = CHAPTER_ALTS[i + 1]; if (a) ch.alt = { brief: a, options: ch.options }; });
 
 /* ---------- 章节引擎（任务书 §4.2） ---------- */
 function startChapters() {
@@ -813,7 +813,7 @@ function refreshContinueBtn() {
       const hh = String(t.getHours()).padStart(2, '0'), mm = String(t.getMinutes()).padStart(2, '0');
       info.textContent = d.phase === 'chapter'
         ? `上局进度：第 ${d.S.ch} / 20 章 · ${hh}:${mm} 存档`
-        : `上局进度：习技 ${d.S.picks} / 5 · ${hh}:${mm} 存档`;
+        : `上局进度：习技 ${d.S.picks} / 8 · ${hh}:${mm} 存档`;
     }
   }
 }
@@ -821,8 +821,7 @@ function refreshContinueBtn() {
 function restoreChapterView() {
   const n = S.ch, ch = curChapterOf(n);
   let brief = ch.brief;
-  if (n === 5 && S.flags.includes('luBuFought')) brief += '虎牢关那一战，还有人记得你的名字。';
-  if (n === 7 && S.flags.includes('liJue')) brief += '袁绍的使者到时，特意问了西凉旧部的近况。';
+
   const checkKeys = [...new Set(ch.options.filter(o => o.check).map(o => o.check))];
   const checksLine = checkKeys.length
     ? `<span class="ch-checks">本章看你的：${checkKeys.map(k => `${ATTR_NAMES[k]} ${S.attrs[k]}<span class="grade">${attrGrade(S.attrs[k])}</span>`).join(' · ')}</span>` : '';
@@ -1204,7 +1203,7 @@ function showGalPerson(name) {
       <span class="hint">绝活 ${ATTR_NAMES[person.special]} ${attrs[person.special]} ｜ 总评 ${ovr}</span></div></div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;">
       ${ATTR_KEYS.map(k => `<div class="attr-cell"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${attrs[k]}</div><div class="a-grade">${attrGrade(attrs[k])}</div></div>`).join('')}
-    </div></div>`;
+    </div>${person.trait ? `<div style="margin-top:8px;font-size:13px;"><b>绝活 · ${person.trait}</b><span style="color:#8a6d1f;"> —— ${person.traitDesc || ''}</span></div>` : ''}${person.bio ? `<p style="margin:6px 0 0;font-size:13px;line-height:1.7;color:#5c4a21;">${person.bio}</p>` : ''}</div>`;
 }
 function openGallery() { renderGallery(); showScreen('gallery'); }
 $('btn-gallery').onclick = openGallery;

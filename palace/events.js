@@ -64,3 +64,62 @@ const EVENTS = [
 const REGULAR_POOL = EVENTS.filter(e => e.weight > 0);
 const CHAPTER_EVENT_NODES = [2, 4, 6, 8, 10];
 const MAX_EVENTS_GAME = 5;
+
+/* 《后宫生存法则》· 宫廷版 —— events_extra.js
+ * 随机事件增补 6 个（P9–P14）。字段与 events.js 一致：id / title / weight / story / focus / options
+ * 选项：label / text / check / taunt / effects / flag / result / win / lose */
+
+const EVENTS_EXTRA = [
+  { id:'P9', title:'错味的药', weight:40,
+    story:'司药房新到一批药材，许清晏挨个闻过去，闻到一味，眉头就没松开过。她说这味不对，先别入库，可管事的催着要签收放行。她一个人站在药柜前，额头上都是汗。',
+    focus:'她闻得出的东西，账上写不出来。',
+    options:[
+      { label:'A', text:'陪她一味味复核', check:'caiyi',
+        win:{ effects:{ troops:60, health:-2 }, result:'你们查到天黑，果然有一味掺了次货。许清晏把你的名字记在验药的册子后面，字写得格外工整。' },
+        lose:{ effects:{ health:-2, fame:-1 }, result:'查了半日也没查出个所以然，倒耽误了入库。管事的脸色不好看，许清晏小声说：对不住，连累你了。' } },
+      { label:'B', text:'替她拖住管事的', effects:{ troops:40, health:-2 }, result:'你陪管事的说了半天闲话，年岁、籍贯、家里的猫，都聊到了。等许清晏那边验完，你嗓子也哑了。' },
+      { label:'C', text:'劝她先签了再说', effects:{ health:1, fame:-1 }, result:'她看了你一会儿，还是签了。后来那味药到底没出事，只是她再没主动跟你说过药房的事。' } ] },
+  { id:'P10', title:'沉了的桶', weight:40,
+    story:'井台边围了一圈人。白露未打水的时候绳子断了，桶沉了底，这桶是要赔的。她蹲在井边绞着手，月钱还没发，她拿什么赔。',
+    focus:'一只桶的价钱，够她省吃俭用两个月。',
+    options:[
+      { label:'A', text:'先替她把桶钱垫上', effects:{ troops:40, health:-1, flag:'helped_bailu' }, result:'你跑了两处才把钱凑齐。白露未说这钱她一定还，还从袖子里摸出块糖塞你手里，说先还个利息。' },
+      { label:'B', text:'陪她去管事跟前求情', check:'jiaoji',
+        win:{ effects:{ fame:1, health:-1 }, result:'你说绳子本就磨得快断了，不全是她的错。管事的查了绳头，摆摆手免了赔。白露未出门就哭了，说是吓的。' },
+        lose:{ effects:{ health:-3 }, result:'管事的一句「规矩就是规矩」，把你们都堵了回来。白露未的桶钱到底从月钱里扣了，你陪着站了半日，什么也没落下。' } },
+      { label:'C', text:'让她自己想办法', effects:{ health:1, fame:-1 }, result:'你回了屋，歇了个整觉。只是后来再去井台打水，总觉得那眼井比先前深。' } ] },
+  { id:'P11', title:'试香', weight:40,
+    story:'贵妃新得了两盒香，让近身伺候的人挨个闻，说真话，哪个更衬她。前头两个都捡好听的说了，沈静姝听着没什么表情，眼睛慢慢转到你身上。',
+    focus:'一盒清淡，一盒浓烈，她要听的不是香。',
+    options:[
+      { label:'A', text:'说真话，选清淡那盒', check:'rongmao',
+        win:{ effects:{ fame:1, health:-1 }, result:'你说浓的压人，清的衬她，话音落时仪态不慌不乱。她怔了怔，把浓的那盒推开。这一晚你睡得不太踏实，总觉得这话说得太满。' },
+        lose:{ effects:{ fame:-1, health:-1 }, result:'话一出口你就乱了方寸，声音发飘。她淡淡说：知道了。香盒都收走了，你在原地站了半天，手心全是汗。' } },
+      { label:'B', text:'跟着夸浓的那盒', effects:{ health:2, fame:-1 }, result:'她笑笑，叫人把浓的收了起来——用的还是清的那盒。你松了口气，又有点说不上来的失落。' },
+      { label:'C', text:'说娘娘用哪个都好', taunt:true, effects:{ troops:30, health:-1 }, result:'你说香是死的，人是活的，娘娘往那儿一站，什么香都成了陪衬。她笑出了声，赏了你一块点心。只是这话传出去，旁人看你的眼神多了点意味。' } ] },
+  { id:'P12', title:'抄经', weight:35,
+    story:'皇后为太后祈福，要赶在寿辰前抄完一部经，缺一个字迹齐整的人誊副本。赵明仪跟前的女官把话递到你这儿：这差事体面，就是熬人。',
+    focus:'体面的差事，往往最磨人。',
+    options:[
+      { label:'A', text:'接下来，熬夜抄完', effects:{ fame:2, health:-3 }, result:'你抄了五夜，眼睛熬得通红，经却抄得一笔不苟。皇后翻到最后，点了点头。这份体面，是拿觉换的。' },
+      { label:'B', text:'推说自己字丑', effects:{ health:1, fame:-1 }, result:'女官没说什么，另寻了别人。你的觉是保住了，只是之后再有体面差事，也没人想起你。' },
+      { label:'C', text:'荐韩玉簪去', effects:{ troops:30, fame:-1 }, result:'韩玉簪的字确实比你强，她抄完得了句夸。你荐人的情她记下了，只是这份体面，到底记在她名下。' } ] },
+  { id:'P13', title:'夜巡', weight:40,
+    story:'半夜，程又青提着灯查铺，在耳房逮到阿箬抱着膝哭——她想家了，怕被人听见，躲在这儿。程又青回头问你：你跟在后头，都看见什么了？',
+    focus:'一句话，能救人，也能压人。',
+    options:[
+      { label:'A', text:'实话实说，她在哭', check:'fuyun',
+        win:{ effects:{ fame:1 }, result:'程又青沉默了一会儿，到底只罚阿箬抄了十遍宫规，还免了她的夜值。阿箬后来见你绕着走，你说不上这是对还是错。' },
+        lose:{ effects:{ troops:-30, health:-1 }, result:'偏赶上程又青心情最坏的一夜。阿箬被罚跪到天亮，你陪着站了半宿。运气这东西，今夜没站在你这边。' } },
+      { label:'B', text:'说她是来送针线的', effects:{ troops:50, health:-2, flag:'helped_aruo' }, result:'你替她圆了过去，代价是陪程又青把剩下的铺全查完，腿都走细了。阿箬第二天塞给你一个自己缝的香包，针脚歪歪扭扭。' },
+      { label:'C', text:'说什么都没看见', taunt:true, effects:{ health:1, fame:-1 }, result:'你说你眼神不好，夜里什么都看不清。程又青看了你一眼，没拆穿。阿箬的事过去了，你睁眼说瞎话的名声，也悄悄传开了。' } ] },
+  { id:'P14', title:'错位的座次', weight:40,
+    story:'一场小宴，座次牌摆错了，林晚照的位置被挪到了末席。她站在门口，手里捏着帕子，进去也不是，走也不是。摆牌子的小太监早不见人影了。',
+    focus:'一张牌子的事，难堪的是人。',
+    options:[
+      { label:'A', text:'趁没人注意把牌子换回来', effects:{ troops:60, health:-1, flag:'allied_lin' }, result:'你换得手心冒汗。林晚照落座时看见牌子，又看了你一眼，什么都没说，整晚给你布了三回菜。' },
+      { label:'B', text:'陪她坐末席', effects:{ troops:40, fame:-1 }, result:'末席冷清，你们俩倒说了不少体己话。就是这一幕落在旁人眼里，又成了「失势的人抱团」的闲话。' },
+      { label:'C', text:'劝她别计较', effects:{ health:1, fame:-1 }, result:'她笑笑，坐下了，整晚吃得很少。你回屋想起她捏帕子的手，觉得自己的话轻飘飘的，没什么分量。' } ] }
+];
+
+EVENTS.push(...EVENTS_EXTRA);

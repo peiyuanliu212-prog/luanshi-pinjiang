@@ -1,32 +1,32 @@
 /* 《后宫生存法则》· 宫廷版 —— data.js
- * 与《乱世拼将》同引擎换数据：五维（心计/才艺/交际/家世/体魄）、三资源（恩宠=health/人脉=troops/声望=sec.fame）。
+ * 与《乱世拼将》同引擎换数据：八维（心计/才艺/交际/家世/体魄/容貌/威仪/福运）、三资源（恩宠=health/人脉=troops/声望=sec.fame）。
  * 人物 attrs 为人物矩阵定稿值（显式表优先于模板生成）。 */
 
-const ATTR_KEYS = ['xinji','caiyi','jiaoji','jiashi','tipo'];
-const ATTR_NAMES = { xinji:'心计', caiyi:'才艺', jiaoji:'交际', jiashi:'家世', tipo:'体魄' };
+const ATTR_KEYS = ['xinji','caiyi','jiaoji','jiashi','tipo','rongmao','weiyi','fuyun'];
+const ATTR_NAMES = { xinji:'心计', caiyi:'才艺', jiaoji:'交际', jiashi:'家世', tipo:'体魄', rongmao:'容貌', weiyi:'威仪', fuyun:'福运' };
 
 const ROUTE_ORDER = ['太后','皇后','贵妃','嫔妃','才人','秀女','女官','掌事姑姑','宫女'];
 const ROUTE_TEMPLATES = {
-  '太后':     { xinji:90, caiyi:60, jiaoji:85, jiashi:92, tipo:42 },
-  '皇后':     { xinji:85, caiyi:68, jiaoji:78, jiashi:90, tipo:48 },
-  '贵妃':     { xinji:88, caiyi:82, jiaoji:90, jiashi:76, tipo:55 },
-  '嫔妃':     { xinji:65, caiyi:70, jiaoji:70, jiashi:75, tipo:55 },
-  '才人':     { xinji:58, caiyi:95, jiaoji:70, jiashi:25, tipo:58 },
-  '秀女':     { xinji:60, caiyi:68, jiaoji:72, jiashi:55, tipo:58 },
-  '女官':     { xinji:75, caiyi:75, jiaoji:55, jiashi:45, tipo:52 },
-  '掌事姑姑': { xinji:80, caiyi:45, jiaoji:70, jiashi:28, tipo:62 },
-  '宫女':     { xinji:45, caiyi:50, jiaoji:72, jiashi:10, tipo:72 }
+  '太后':     { xinji:90, caiyi:60, jiaoji:85, jiashi:92, tipo:42, rongmao:55, weiyi:95, fuyun:80 },
+  '皇后':     { xinji:85, caiyi:68, jiaoji:78, jiashi:90, tipo:48, rongmao:80, weiyi:90, fuyun:55 },
+  '贵妃':     { xinji:88, caiyi:82, jiaoji:90, jiashi:76, tipo:55, rongmao:93, weiyi:82, fuyun:65 },
+  '嫔妃':     { xinji:65, caiyi:70, jiaoji:70, jiashi:75, tipo:55, rongmao:82, weiyi:50, fuyun:60 },
+  '才人':     { xinji:58, caiyi:95, jiaoji:70, jiashi:25, tipo:58, rongmao:85, weiyi:35, fuyun:58 },
+  '秀女':     { xinji:60, caiyi:68, jiaoji:72, jiashi:55, tipo:58, rongmao:78, weiyi:30, fuyun:62 },
+  '女官':     { xinji:75, caiyi:75, jiaoji:55, jiashi:45, tipo:52, rongmao:62, weiyi:60, fuyun:52 },
+  '掌事姑姑': { xinji:80, caiyi:45, jiaoji:70, jiashi:28, tipo:62, rongmao:42, weiyi:80, fuyun:50 },
+  '宫女':     { xinji:45, caiyi:50, jiaoji:72, jiashi:10, tipo:72, rongmao:65, weiyi:20, fuyun:68 }
 };
 const ROUTE_WEIGHTS = {
-  '太后':     { xinji:.30, caiyi:.08, jiaoji:.22, jiashi:.30, tipo:.10 },
-  '皇后':     { xinji:.28, caiyi:.12, jiaoji:.20, jiashi:.30, tipo:.10 },
-  '贵妃':     { xinji:.26, caiyi:.20, jiaoji:.28, jiashi:.16, tipo:.10 },
-  '嫔妃':     { xinji:.22, caiyi:.20, jiaoji:.24, jiashi:.22, tipo:.12 },
-  '才人':     { xinji:.14, caiyi:.42, jiaoji:.20, jiashi:.08, tipo:.16 },
-  '秀女':     { xinji:.20, caiyi:.20, jiaoji:.26, jiashi:.18, tipo:.16 },
-  '女官':     { xinji:.26, caiyi:.28, jiaoji:.16, jiashi:.14, tipo:.16 },
-  '掌事姑姑': { xinji:.30, caiyi:.10, jiaoji:.26, jiashi:.10, tipo:.24 },
-  '宫女':     { xinji:.14, caiyi:.14, jiaoji:.30, jiashi:.04, tipo:.38 }
+  '太后':     { xinji:0.22, caiyi:0.06, jiaoji:0.16, jiashi:0.21, tipo:0.07 , rongmao:.12, weiyi:.10, fuyun:.06 },
+  '皇后':     { xinji:0.2, caiyi:0.09, jiaoji:0.14, jiashi:0.22, tipo:0.07 , rongmao:.12, weiyi:.10, fuyun:.06 },
+  '贵妃':     { xinji:0.19, caiyi:0.14, jiaoji:0.2, jiashi:0.12, tipo:0.07 , rongmao:.12, weiyi:.10, fuyun:.06 },
+  '嫔妃':     { xinji:0.16, caiyi:0.14, jiaoji:0.17, jiashi:0.16, tipo:0.09 , rongmao:.12, weiyi:.10, fuyun:.06 },
+  '才人':     { xinji:0.1, caiyi:0.3, jiaoji:0.14, jiashi:0.06, tipo:0.12 , rongmao:.12, weiyi:.10, fuyun:.06 },
+  '秀女':     { xinji:0.14, caiyi:0.14, jiaoji:0.19, jiashi:0.13, tipo:0.12 , rongmao:.12, weiyi:.10, fuyun:.06 },
+  '女官':     { xinji:0.19, caiyi:0.19, jiaoji:0.12, jiashi:0.1, tipo:0.12 , rongmao:.12, weiyi:.10, fuyun:.06 },
+  '掌事姑姑': { xinji:0.22, caiyi:0.07, jiaoji:0.19, jiashi:0.07, tipo:0.17 , rongmao:.12, weiyi:.10, fuyun:.06 },
+  '宫女':     { xinji:0.1, caiyi:0.1, jiaoji:0.22, jiashi:0.03, tipo:0.27 , rongmao:.12, weiyi:.10, fuyun:.06 }
 };
 
 const TIER_MOD = { S:14, A:8, B:2, C:-4, D:-8 };
@@ -79,41 +79,41 @@ function computeOVR(route, attrs) {
 /* ---------- 宫室与人物（30 人：S3 A4 B6 C8 D9；attrs 为矩阵定稿） ---------- */
 const FACTIONS = [
   { name:'慈宁宫', people:[
-    { name:'陆挽真', route:'太后', tier:'S', special:'xinji',  attrs:{ xinji:96, caiyi:62, jiaoji:88, jiashi:95, tipo:40 } },
-    { name:'程又青', route:'掌事姑姑', tier:'A', special:'xinji', attrs:{ xinji:85, caiyi:50, jiaoji:78, jiashi:30, tipo:66 } },
-    { name:'高福宁', route:'掌事姑姑', tier:'C', special:'xinji', attrs:{ xinji:74, caiyi:40, jiaoji:50, jiashi:26, tipo:58 } },
-    { name:'胡三姐', route:'掌事姑姑', tier:'D', special:'xinji', attrs:{ xinji:64, caiyi:36, jiaoji:58, jiashi:20, tipo:74 } },
-    { name:'莫问秋', route:'女官', tier:'D', special:'caiyi', attrs:{ xinji:68, caiyi:74, jiaoji:42, jiashi:38, tipo:36 } } ] },
+    { name:'陆挽真', route:'太后', tier:'S', special:'xinji',  attrs:{ xinji:96, caiyi:62, jiaoji:88, jiashi:95, tipo:40, rongmao:58, weiyi:97, fuyun:82 } },
+    { name:'程又青', route:'掌事姑姑', tier:'A', special:'xinji', attrs:{ xinji:85, caiyi:50, jiaoji:78, jiashi:30, tipo:66, rongmao:45, weiyi:85, fuyun:50 } },
+    { name:'高福宁', route:'掌事姑姑', tier:'C', special:'xinji', attrs:{ xinji:74, caiyi:40, jiaoji:50, jiashi:26, tipo:58, rongmao:42, weiyi:68, fuyun:56 } },
+    { name:'胡三姐', route:'掌事姑姑', tier:'D', special:'xinji', attrs:{ xinji:64, caiyi:36, jiaoji:58, jiashi:20, tipo:74, rongmao:38, weiyi:70, fuyun:45 } },
+    { name:'莫问秋', route:'女官', tier:'D', special:'caiyi', attrs:{ xinji:68, caiyi:74, jiaoji:42, jiashi:38, tipo:36, rongmao:64, weiyi:42, fuyun:44 } } ] },
   { name:'中宫', people:[
-    { name:'赵明仪', route:'皇后', tier:'A', special:'xinji', attrs:{ xinji:88, caiyi:70, jiaoji:80, jiashi:92, tipo:48 } },
-    { name:'郑含章', route:'女官', tier:'B', special:'xinji', attrs:{ xinji:80, caiyi:76, jiaoji:58, jiashi:50, tipo:44 } },
-    { name:'秦望舒', route:'嫔妃', tier:'B', special:'jiashi', attrs:{ xinji:68, caiyi:72, jiaoji:66, jiashi:88, tipo:45 } },
-    { name:'韩玉簪', route:'秀女', tier:'C', special:'caiyi', attrs:{ xinji:66, caiyi:80, jiaoji:52, jiashi:35, tipo:42 } },
-    { name:'卫明珠', route:'嫔妃', tier:'C', special:'tipo', attrs:{ xinji:62, caiyi:70, jiaoji:68, jiashi:58, tipo:84 } } ] },
+    { name:'赵明仪', route:'皇后', tier:'A', special:'xinji', attrs:{ xinji:88, caiyi:70, jiaoji:80, jiashi:92, tipo:48, rongmao:82, weiyi:92, fuyun:58 } },
+    { name:'郑含章', route:'女官', tier:'B', special:'xinji', attrs:{ xinji:80, caiyi:76, jiaoji:58, jiashi:50, tipo:44, rongmao:66, weiyi:72, fuyun:54 } },
+    { name:'秦望舒', route:'嫔妃', tier:'B', special:'jiashi', attrs:{ xinji:68, caiyi:72, jiaoji:66, jiashi:88, tipo:45, rongmao:80, weiyi:55, fuyun:62 } },
+    { name:'韩玉簪', route:'秀女', tier:'C', special:'caiyi', attrs:{ xinji:66, caiyi:80, jiaoji:52, jiashi:35, tipo:42, rongmao:83, weiyi:40, fuyun:38 } },
+    { name:'卫明珠', route:'嫔妃', tier:'C', special:'tipo', attrs:{ xinji:62, caiyi:70, jiaoji:68, jiashi:58, tipo:84, rongmao:77, weiyi:52, fuyun:71 } } ] },
   { name:'承乾宫', people:[
-    { name:'沈静姝', route:'贵妃', tier:'S', special:'jiaoji', attrs:{ xinji:90, caiyi:85, jiaoji:92, jiashi:78, tipo:55 } },
-    { name:'贺兰敏', route:'嫔妃', tier:'A', special:'jiaoji', attrs:{ xinji:60, caiyi:66, jiaoji:84, jiashi:85, tipo:82 } },
-    { name:'方绮罗', route:'嫔妃', tier:'B', special:'jiashi', attrs:{ xinji:58, caiyi:64, jiaoji:72, jiashi:80, tipo:52 } },
-    { name:'姜蜜儿', route:'秀女', tier:'D', special:'jiaoji', attrs:{ xinji:26, caiyi:54, jiaoji:76, jiashi:42, tipo:66 } },
-    { name:'钱宝珠', route:'宫女', tier:'D', special:'xinji', attrs:{ xinji:56, caiyi:38, jiaoji:62, jiashi:11, tipo:60 } } ] },
+    { name:'沈静姝', route:'贵妃', tier:'S', special:'jiaoji', attrs:{ xinji:90, caiyi:85, jiaoji:92, jiashi:78, tipo:55, rongmao:95, weiyi:84, fuyun:66 } },
+    { name:'贺兰敏', route:'嫔妃', tier:'A', special:'jiaoji', attrs:{ xinji:60, caiyi:66, jiaoji:84, jiashi:85, tipo:82, rongmao:84, weiyi:62, fuyun:70 } },
+    { name:'方绮罗', route:'嫔妃', tier:'B', special:'jiashi', attrs:{ xinji:58, caiyi:64, jiaoji:72, jiashi:80, tipo:52, rongmao:90, weiyi:48, fuyun:72 } },
+    { name:'姜蜜儿', route:'秀女', tier:'D', special:'jiaoji', attrs:{ xinji:26, caiyi:54, jiaoji:76, jiashi:42, tipo:66, rongmao:76, weiyi:16, fuyun:73 } },
+    { name:'钱宝珠', route:'宫女', tier:'D', special:'xinji', attrs:{ xinji:56, caiyi:38, jiaoji:62, jiashi:11, tipo:60, rongmao:62, weiyi:33, fuyun:78 } } ] },
   { name:'尚宫局', people:[
-    { name:'温叙白', route:'女官', tier:'A', special:'caiyi', attrs:{ xinji:78, caiyi:88, jiaoji:60, jiashi:45, tipo:50 } },
-    { name:'许清晏', route:'女官', tier:'B', special:'xinji', attrs:{ xinji:72, caiyi:58, jiaoji:55, jiashi:40, tipo:62 } },
-    { name:'罗绛仙', route:'女官', tier:'C', special:'caiyi', attrs:{ xinji:52, caiyi:82, jiaoji:46, jiashi:22, tipo:56 } },
-    { name:'孙巧姐', route:'宫女', tier:'D', special:'caiyi', attrs:{ xinji:40, caiyi:78, jiaoji:44, jiashi:14, tipo:50 } },
-    { name:'春桃', route:'宫女', tier:'D', special:'tipo', attrs:{ xinji:28, caiyi:44, jiaoji:66, jiashi:6, tipo:80 } } ] },
+    { name:'温叙白', route:'女官', tier:'A', special:'caiyi', attrs:{ xinji:78, caiyi:88, jiaoji:60, jiashi:45, tipo:50, rongmao:76, weiyi:38, fuyun:60 } },
+    { name:'许清晏', route:'女官', tier:'B', special:'xinji', attrs:{ xinji:72, caiyi:58, jiaoji:55, jiashi:40, tipo:62, rongmao:72, weiyi:36, fuyun:64 } },
+    { name:'罗绛仙', route:'女官', tier:'C', special:'caiyi', attrs:{ xinji:52, caiyi:82, jiaoji:46, jiashi:22, tipo:56, rongmao:75, weiyi:28, fuyun:48 } },
+    { name:'孙巧姐', route:'宫女', tier:'D', special:'caiyi', attrs:{ xinji:40, caiyi:78, jiaoji:44, jiashi:14, tipo:50, rongmao:60, weiyi:26, fuyun:63 } },
+    { name:'春桃', route:'宫女', tier:'D', special:'tipo', attrs:{ xinji:28, caiyi:44, jiaoji:66, jiashi:6, tipo:80, rongmao:55, weiyi:18, fuyun:66 } } ] },
   { name:'储秀宫', people:[
-    { name:'苏锦瑟', route:'才人', tier:'S', special:'caiyi', attrs:{ xinji:55, caiyi:98, jiaoji:70, jiashi:18, tipo:60 } },
-    { name:'林晚照', route:'秀女', tier:'B', special:'xinji', attrs:{ xinji:82, caiyi:74, jiaoji:76, jiashi:64, tipo:58 } },
-    { name:'陶夭夭', route:'秀女', tier:'C', special:'jiaoji', attrs:{ xinji:30, caiyi:68, jiaoji:80, jiashi:55, tipo:64 } },
-    { name:'杜若', route:'秀女', tier:'D', special:'caiyi', attrs:{ xinji:58, caiyi:72, jiaoji:40, jiashi:48, tipo:46 } },
-    { name:'阿箬', route:'宫女', tier:'D', special:'jiaoji', attrs:{ xinji:34, caiyi:50, jiaoji:70, jiashi:9, tipo:68 } } ] },
+    { name:'苏锦瑟', route:'才人', tier:'S', special:'caiyi', attrs:{ xinji:55, caiyi:98, jiaoji:70, jiashi:18, tipo:60, rongmao:88, weiyi:40, fuyun:74 } },
+    { name:'林晚照', route:'秀女', tier:'B', special:'xinji', attrs:{ xinji:82, caiyi:74, jiaoji:76, jiashi:64, tipo:58, rongmao:85, weiyi:44, fuyun:52 } },
+    { name:'陶夭夭', route:'秀女', tier:'C', special:'jiaoji', attrs:{ xinji:30, caiyi:68, jiaoji:80, jiashi:55, tipo:64, rongmao:78, weiyi:20, fuyun:76 } },
+    { name:'杜若', route:'秀女', tier:'D', special:'caiyi', attrs:{ xinji:58, caiyi:72, jiaoji:40, jiashi:48, tipo:46, rongmao:79, weiyi:35, fuyun:57 } },
+    { name:'阿箬', route:'宫女', tier:'D', special:'jiaoji', attrs:{ xinji:34, caiyi:50, jiaoji:70, jiashi:9, tipo:68, rongmao:68, weiyi:15, fuyun:30 } } ] },
   { name:'长乐宫', people:[
-    { name:'柳新雁', route:'宫女', tier:'B', special:'jiaoji', attrs:{ xinji:76, caiyi:45, jiaoji:90, jiashi:12, tipo:70 } },
-    { name:'白露未', route:'宫女', tier:'C', special:'tipo', attrs:{ xinji:48, caiyi:52, jiaoji:74, jiashi:10, tipo:78 } },
-    { name:'孟姜梨', route:'嫔妃', tier:'C', special:'caiyi', attrs:{ xinji:70, caiyi:78, jiaoji:48, jiashi:60, tipo:38 } },
-    { name:'豆蔻', route:'宫女', tier:'C', special:'jiaoji', attrs:{ xinji:36, caiyi:48, jiaoji:82, jiashi:8, tipo:72 } },
-    { name:'田穗儿', route:'宫女', tier:'D', special:'tipo', attrs:{ xinji:32, caiyi:46, jiaoji:60, jiashi:7, tipo:82 } } ] }
+    { name:'柳新雁', route:'宫女', tier:'B', special:'jiaoji', attrs:{ xinji:76, caiyi:45, jiaoji:90, jiashi:12, tipo:70, rongmao:74, weiyi:30, fuyun:68 } },
+    { name:'白露未', route:'宫女', tier:'C', special:'tipo', attrs:{ xinji:48, caiyi:52, jiaoji:74, jiashi:10, tipo:78, rongmao:70, weiyi:22, fuyun:88 } },
+    { name:'孟姜梨', route:'嫔妃', tier:'C', special:'caiyi', attrs:{ xinji:70, caiyi:78, jiaoji:48, jiashi:60, tipo:38, rongmao:81, weiyi:34, fuyun:25 } },
+    { name:'豆蔻', route:'宫女', tier:'C', special:'jiaoji', attrs:{ xinji:36, caiyi:48, jiaoji:82, jiashi:8, tipo:72, rongmao:72, weiyi:12, fuyun:80 } },
+    { name:'田穗儿', route:'宫女', tier:'D', special:'tipo', attrs:{ xinji:32, caiyi:46, jiaoji:60, jiashi:7, tipo:82, rongmao:52, weiyi:24, fuyun:69 } } ] }
 ];
 
 /* ---------- 出身（玩家开局四选一） ---------- */
@@ -155,7 +155,7 @@ const CHAPTERS = [
     { label:'B', text:'替迟到的陶夭夭求情', kind:'亲为', check:'jiaoji',
       win:{ effects:{ troops:100, health:-1 }, tier:'胜', bio:'你说她是替你取东西才迟的。程又青看了你一会儿，挥手让陶夭夭起来了。' },
       lose:{ effects:{ health:-3 }, tier:'败', bio:'求情求成了同罪。你陪着陶夭夭一起跪，她哭着说对不起，你说闭嘴，省点力气。' } },
-    { label:'C', text:'说这罚不合旧例', kind:'谋划', check:'xinji',
+    { label:'C', text:'说这罚不合旧例', kind:'谋划', check:'weiyi',
       win:{ effects:{ fame:2, flag:'offended_cheng' }, tier:'胜', bio:'你引了旧例，程又青挑不出错，只得作罢。只是她看你的眼神，从此多了点东西。' },
       lose:{ effects:{ health:-4, flag:'offended_cheng' }, tier:'败', bio:'旧例没引对，还被她多问了三条。跪着的时候你想，书还是要多读。' } }
   ]},
@@ -197,7 +197,7 @@ const CHAPTERS = [
       fixed:{ effects:{ troops:-50, flag:'neutral' }, tier:null, bio:'你把头面和南珠锁进同一个箱子。宫里的人说你滑头，你说这叫平安。' } }
   ]},
   { n:7, name:'陷害', brief:'开春第一桩事，是有人告发你私藏违禁之物。搜宫的人来得很快，从你箱笼底层翻出一包不该有的东西——你没见过它，但它躺在你的箱子里，比什么都像证据。主事的问你：还有什么要说的？', options:[
-    { label:'A', text:'当场自辩，逐条对质', kind:'亲为', check:'xinji',
+    { label:'A', text:'当场自辩，逐条对质', kind:'亲为', check:'weiyi',
       win:{ effects:{ fame:2 }, tier:'胜', bio:'你问到第三个问题，对方先乱了阵脚。这包东西的来路，改日再算，今日你先站住了。' },
       lose:{ effects:{ health:-7, fame:-2 }, tier:'败', bio:'你说得都对，可宫里讲理的地方不多。你被申饬禁足，恩宠一日凉过一日。' } },
     { label:'B', text:'求同宫的人作证', kind:'谋划', check:'jiaoji',
@@ -265,7 +265,7 @@ const CHAPTERS = [
   ],
   flagVariants:{
     proQueen:{ brief:'皇后要动贵妃了，选在万寿宴这一晚。她不需要你出头，只需要你在贵妃敬酒时，把那杯酒稳稳接住——接住了，你就是中宫的人；手一抖，你就是弃子。', options:[
-      { label:'A', text:'稳稳接住那杯酒', kind:'亲为', check:'xinji',
+      { label:'A', text:'稳稳接住那杯酒', kind:'亲为', check:'weiyi',
         win:{ effects:{ fame:3, health:1 }, tier:'大胜', bio:'那杯酒你喝得滴水不漏。当晚，贵妃宫里的灯，一盏一盏灭了。' },
         lose:{ effects:{ fame:-2, health:-6 }, tier:'败', bio:'你的手还是抖了。酒洒在裙角上，像一句没说出口的供词。' } },
       { label:'B', text:'把酒引到自己身上', kind:'谋划', check:'jiaoji',
@@ -304,3 +304,6 @@ const CHAPTERS = [
       fixed:{ effects:{}, tier:null, bio:'你跪下来求的不是宠，是放你走。宫门那么高，你想看看外面的天，是不是也这么高。' } }
   ]}
 ];
+
+const BIOS = {"陆挽真": {"bio": "先帝旧族出身，在宫里熬了两朝。说话慢声细语，每句都留三分余地。她不依附任何人，只盘算一件事：保住家族的哀荣，体面地老去。", "trait": "话留三分", "traitDesc": "一句话只说七分，剩下的让人自己怕"}, "程又青": {"bio": "内务府家生子，四十岁熬成掌事姑姑。铁面之下有细心，先讲规矩，再讲人情。年轻时替主子背过一回锅，旧伤至今阴雨天还疼。", "trait": "铁面细心", "traitDesc": "规矩她立，人情也留三分"}, "高福宁": {"bio": "家生子出身的掌事姑姑，冷面寡言，一个眼神顶三句话。年轻时也曾得意过，如今提也不提，只想少惹事，平安熬到出宫的岁数。", "trait": "眼抵千言", "traitDesc": "不必开口，一个眼神就镇住场"}, "胡三姐": {"bio": "家生子，基层的掌事姑姑，嗓门洪亮，动不动就说听好了。她泼辣务实又护短，年轻时管过的事，比程又青还多。", "trait": "泼辣精明", "traitDesc": "嗓门压得住场，心里算得清账"}, "莫问秋": {"bio": "旧臣之后，守着冷衙门的旧档案，冷淡通透，爱说与我无关。没人看的故纸堆里藏着前朝秘辛，她守着，只当守一辈子的清净。", "trait": "故纸通明", "traitDesc": "旧档烂熟于心，前朝事她最清楚"}, "赵明仪": {"bio": "将门嫡女，母仪天下，端方隐忍。多年无子又无宠，中宫的位置却纹丝不动——她靠的不是恩宠，是规矩，是分寸，是从不说满的话。", "trait": "四平八稳", "traitDesc": "话从不说满，错从不出在她身上"}, "郑含章": {"bio": "礼官之后，任司礼，开口先引旧例，认死理，只认制度不认人。她一心要做女官之首，最怕的，却是有人说她靠的是父荫。", "trait": "旧例压人", "traitDesc": "一条旧例搬出来，谁都驳不倒"}, "秦望舒": {"bio": "世家旁支的女儿，家里送她进宫，原是替嫡姐补的缺。她温顺，爱说都好，心里却有主意——只盼生下皇子，替自己站稳脚跟。", "trait": "门第生光", "traitDesc": "世家旁支的体面，她撑得比谁都稳"}, "韩玉簪": {"bio": "家道中落的旧世家女儿，清高敏感，话里爱引诗句。行李里藏着当掉首饰换来的银票——她不肯低头，一心要重振门楣。", "trait": "诗骨清高", "traitDesc": "诗句张口就来，傲气压不住"}, "卫明珠": {"bio": "边地将门出身，爽朗能吃苦，说话带边地口音。她会骑马，身手利落，在这四方宫墙里，总偷偷想念一望无际的草原。", "trait": "骑射双绝", "traitDesc": "马背上的本事，侍卫也服气"}, "沈静姝": {"bio": "诗礼之家长女，明艳张扬，一笑倾座。话里带笑，笑里带刺，最会把人心拢到自己这边。她只怕一件事：有朝一日，盛宠不再。", "trait": "笑里藏锋", "traitDesc": "她笑着递的酒，没人敢不接"}, "贺兰敏": {"bio": "边将之女，嗓门亮，笑声能传半条宫道。骑射胜过宫中多数侍卫，脾气却急，藏不住话。她进宫不为别的，要替父兄挣回一份体面。", "trait": "声传六宫", "traitDesc": "她一笑，半宫的人都跟着松快"}, "方绮罗": {"bio": "富商之女，娇气爱美，三句不离新衣首饰。她的嫁妆单子，比许多嫔妃的体己还丰厚。深宫的路难走，她的办法简单：拿钱开路。", "trait": "金玉满堂", "traitDesc": "银子铺到的地方，路就通到哪里"}, "姜蜜儿": {"bio": "点心铺的女儿，贪吃爱笑，说话带笑音，袖子里常藏着点心。她自来熟，管不住嘴，进宫最大的心愿是尝遍宫里的好吃的。", "trait": "笑音迎人", "traitDesc": "还没开口先带笑，谁都愿意亲近"}, "钱宝珠": {"bio": "破落商户之女，精打细算，开口先算成本。她有一本全宫最详细的人情账本，谁欠谁多少，都记着——帮人可以，先讲互利。", "trait": "人情账本", "traitDesc": "谁的人情值多少，她记得一清二楚"}, "温叙白": {"bio": "书香门第出身的女官，清冷自持，惜字如金。一部宫史经她的手编修，谁也不知道，她私下还写着一本没有署名的宫闱笔记。", "trait": "秉笔直书", "traitDesc": "笔下无虚言，宫史经她手最可信"}, "许清晏": {"bio": "医户世家出身，掌司药，沉静谨慎，说话前先想三秒。她认得几种不该出现在宫里的药味，却总替人留三分余地，从不把话说死。", "trait": "三思后言", "traitDesc": "开口前想三秒，祸事躲她三分"}, "罗绛仙": {"bio": "绣户出身的针线女官，安静手巧，一幅绣品能引得满宫争看。她的绣活曾被贵人冒名领赏，她低着头，没敢吭一声。", "trait": "妙手生花", "traitDesc": "针线到她手里，花鸟都像活的"}, "孙巧姐": {"bio": "绣庄学徒出身的绣娘，耐心温和，轻声慢语。夜里点灯赶活，眼睛熬得越来越差，她只想攒够钱，开一间自己的绣摊。", "trait": "飞针走线", "traitDesc": "一根针在她手里，快得看不见影"}, "春桃": {"bio": "佃户女儿，老实肯干，应答先点头。进宫三年，没出过错，也没出过头。每月的月钱一文不舍得花，全寄回家里去。", "trait": "吃苦耐劳", "traitDesc": "再重的活计，她闷头就干完"}, "苏锦瑟": {"bio": "乐户出身，幼时被卖进乐坊，一身琵琶绝技是拿童年换来的。她通透豁达，不争宠不站队，只攒着赏钱，想出宫开一间自己的乐坊。", "trait": "一曲倾城", "traitDesc": "一曲未终，满座先软了心肠"}, "林晚照": {"bio": "地方官家女儿，在家里并不受宠，进宫的名额是自己争来的。她好胜机敏，句句机锋，可敌可友——只看对方值不值得她费心。", "trait": "机锋逼人", "traitDesc": "一句反问出口，对方先乱了阵脚"}, "陶夭夭": {"bio": "富户幼女，天真烂漫，进宫纯粹是被家人哄来的。她没防人之心，叽叽喳喳爱问为什么，一心只想着吃遍御膳房的点心。", "trait": "笑语盈盈", "traitDesc": "她一开口笑，戒心先卸一半"}, "杜若": {"bio": "教书先生之女，沉默寡言，一天说不上十句话。她的诗写得极好，却从不示人，只想安安静静，把宫里的书读完。", "trait": "诗才不露", "traitDesc": "诗写得再好，也只肯自己看"}, "阿箬": {"bio": "小贩之女，粗心大意，连连道歉是口头禅。她打碎过贵人的茶盏，嫁祸给了一只猫——随和没脾气，少挨骂就是她的福。", "trait": "笑脸迎人", "traitDesc": "错先认，笑先赔，没人忍心怪她"}, "柳新雁": {"bio": "市井出身的宫女，机灵嘴甜，语速比消息还快。宫里大半流言，都在她这儿过第一手。她谁都不得罪，只一门心思攒钱赎身出宫。", "trait": "消息先行", "traitDesc": "话还没出口，消息已经满宫飞"}, "白露未": {"bio": "农户女儿，没读过书，没心眼，想到什么说什么。认准一个人就再不变心。她力气大得惊人，一口没人挪得动的水缸，她独自能搬。", "trait": "力能扛鼎", "traitDesc": "满宫搬不动的东西，她一人能行"}, "孟姜梨": {"bio": "小官之女，曾盛宠一时，只因替人传错一句话，跌进冷清宫里。她清醒悲观，身子又弱，口头禅是都过去了——看透，却不说透。", "trait": "才情自守", "traitDesc": "一身才情藏着，从不拿出来争宠"}, "豆蔻": {"bio": "灾年被送进宫的小宫女，活泼机灵，童言无忌。她记得每个主子的小喜好，靠这份记性讨赏，只盼吃饱穿暖，快些长大。", "trait": "记性讨喜", "traitDesc": "主子的喜好她全记着，赏少不了"}, "田穗儿": {"bio": "山里猎户的女儿，乡音未改，憨直力大。她能徒手爬树掏鸟窝，身手好得不像宫女。心愿简单：吃饱，睡好，寄钱回家。", "trait": "身手矫健", "traitDesc": "爬树上墙的本事，满宫找不出第二个"}};
+for (const f of FACTIONS) for (const p of f.people) { const b = BIOS[p.name]; if (b) { p.bio = b.bio; p.trait = b.trait; p.traitDesc = b.traitDesc; } }
