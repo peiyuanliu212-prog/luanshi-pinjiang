@@ -1062,7 +1062,10 @@ function drawBatch(people, boostS) {
   /* v5.10：天命临身改为保底——本批必含 1 名 S 与 1 名 A（池中尚有时），其余再按权重抽。
      原仅 S 权重 ×4，实测约 3/4 的批次一个 S 都没有，看广告换个 B 名不副实。 */
   if (boostS) {
-    for (const tier of ['S', 'A']) {
+    /* v5.12：河北/荆扬两势力无人为 S 级，原保底在池中无 S 时静默缩水为只保 1 名 A；
+       改为无 S 势力保底 2 名 A，广告奖励在任何势力都不缺斤少两。 */
+    const tiers = pool.some(p => p.tier === 'S') ? ['S', 'A'] : ['A', 'A'];
+    for (const tier of tiers) {
       const cand = pool.filter(p => p.tier === tier);
       if (cand.length) out.push(pool.splice(pool.indexOf(pick(cand)), 1)[0]);
     }
@@ -1311,7 +1314,7 @@ function effectSummary(eff) {
       else if (v === 'recruit60') parts.push('兵马+招募六成');
       else parts.push(`兵马${v > 0 ? '+' : ''}${v}`);
     }
-    else if (k === 'perm') { for (const pk of Object.keys(v)) parts.push(`${ATTR_NAMES[pk]}永久${v[pk] > 0 ? '+' : ''}${v[pk]}`); }
+    else if (k === 'perm') { for (const pk of Object.keys(v)) parts.push(`${ATTR_NAMES[pk]}历练${v[pk] > 0 ? '+' : ''}${v[pk]}`); }
     else if (k === 'flag') { /* 标记不在预览里剧透 */ }
     else if (SEC_KEYS.includes(k)) parts.push(`${SEC_NAMES[k]}${v > 0 ? '+' : ''}${v}`);
   }
@@ -1465,6 +1468,24 @@ const CHAPTER_ALTS = {
     ] }
 };
 CHAPTERS.forEach((ch, i) => { const a = CHAPTER_ALTS[i + 1]; if (a) ch.alt = a; });
+
+/* v5.12 历练成长（回应玩家反馈「没有成长、只能靠开局模版」）：原 perm 永久加点全游戏仅 5 处、玩家无感。
+   数据层统一注入——凡带 check 的选项，其 win 分支注入 perm[check]+=历练值（第 1–7 章 +1、其后 +2，
+   一局胜约十章累计 +10~+18 摊在所考属性上）；选项预览与章末战报都走 effectSummary，自动明示「XX历练+N」。
+   赌一把的 scaleEffects 对 perm 一视同仁（赢了翻倍成长）；改命快照含 attrs，历练可随回滚撤销。 */
+(function injectTraining() {
+  const visit = (node, n) => {
+    if (!node || typeof node !== 'object') return;
+    if (node.check && node.win) {
+      const w = node.win;
+      w.effects = w.effects || {};
+      w.effects.perm = w.effects.perm || {};
+      w.effects.perm[node.check] = (w.effects.perm[node.check] || 0) + (n <= 7 ? 1 : 2);
+    }
+    for (const k of Object.keys(node)) visit(node[k], n);
+  };
+  CHAPTERS.forEach((ch, i) => visit(ch, i + 1));
+})();
 
 /* ---------- 章节引擎（任务书 §4.2） ---------- */
 function startChapters() {
