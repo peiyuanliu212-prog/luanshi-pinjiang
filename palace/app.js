@@ -61,7 +61,11 @@ function syncSetupBtn() { $('btn-to-draft').disabled = !(S.route && S.origin); }
 function factionExhausted(f) { return f.people.every(p => S.claimed.has(f.name + '-' + p.name)); }
 function rollFaction() {
   const avail = FACTIONS.filter(f => !factionExhausted(f));
-  S.faction = pick(avail);
+  const __cnt = f => f.people.filter(p => !S.claimed.has(f.name + '-' + p.name)).length;
+  const __max = Math.max(...avail.map(__cnt));
+  let __pool = avail.filter(f => __cnt(f) === __max);
+  if (__pool.length > 1 && S.faction) __pool = __pool.filter(f => f.name !== S.faction.name);
+  S.faction = pick(__pool.length ? __pool : avail);
   S.person = null;
   S.poolAttrs = {};
   const unclaimed = S.faction.people.filter(p => !S.claimed.has(S.faction.name + '-' + p.name));
