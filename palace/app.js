@@ -31,7 +31,7 @@ function showScreen(name) {
   window.__curScreen = name;
   document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
   $('screen-' + name).classList.remove('hidden');
-  const label = { home:'《后宫生存法则》', setup:'设定', draft:'习技', unveil:'揭幕', chapter:'宫中十二章', ending:'结局', poster:'此人判词', records:'我的纪事榜', gallery:'人物录 · 成就' }[name];
+  const label = { home:'《后宫生存法则》', setup:'设定', draft:'习技', unveil:'揭幕', chapter:'宫中十二章', ending:'结局', poster:'命运判词', records:'我的纪事榜', gallery:'人物录 · 成就' }[name];
   $('progress').textContent = label || '';
   window.scrollTo(0, 0);
 }
@@ -114,7 +114,7 @@ function renderMinePanel() {
   const filled = {};
   for (const k of ATTR_KEYS) filled[k] = (k in S.attrs) ? S.attrs[k] : ROUTE_TEMPLATES[S.route][k];
   const est = computeOVR(S.route, filled);
-  el.innerHTML = `<div class="mine-title">🧩 我的拼图（已锁定 ${S.picks} / 8）｜预估总评 <b style="color:#E62B1E;">${est} / 100</b><span class="grade">${attrGrade(est)}</span>（未夺项按${S.route}底子估）</div>
+  el.innerHTML = `<div class="mine-title">🌸 我的班底（已锁定 ${S.picks} / 8）｜预估总评 <b style="color:#E62B1E;">${est} / 100</b><span class="grade">${attrGrade(est)}</span>（未夺项按${S.route}底子估）</div>
     <div class="attr-grid">${ATTR_KEYS.map(k => (k in S.attrs)
       ? `<div class="attr-cell"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${S.attrs[k]}</div><div class="a-grade">${attrGrade(S.attrs[k])}</div></div>`
       : `<div class="attr-cell empty"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">—</div></div>`).join('')}</div>`;
@@ -226,7 +226,7 @@ function finishDraft() {
   $('unveil-title').textContent = S.title;
   $('unveil-lines').innerHTML =
     `路线 ${S.route} ｜ 总评 <b>${S.ovr} / 100</b><span class="grade">${attrGrade(S.ovr)}</span> ｜ 根基尚浅 <b>${S.deBuPei}</b> 项<br>` +
-    `角色定位：${roleRank(S.ovr)} ｜ 初始人脉 ${S.troops} ｜ 出身：${S.origin.name}`;
+    `角色定位：${roleRank(S.ovr)} ｜ 初始人脉值 ${S.troops} ｜ 出身：${S.origin.name}`;
   $('unveil-attrs').innerHTML = ATTR_KEYS.map(k => {
     const th = (S.attrs.tipo + S.attrs.xinji) / 2 + 30;
     return `<div class="attr-cell"><div class="a-name">${ATTR_NAMES[k]}${S.attrs[k] > th ? ' ⚠️' : ''}</div><div class="a-val">${S.attrs[k]}</div><div class="a-grade">${attrGrade(S.attrs[k])}</div></div>`;
@@ -441,8 +441,8 @@ function renderChapterOptions(ch) {
   gBtn.classList.toggle('hidden', !hasCheck);
   gBtn.classList.toggle('on', S.gamble);
   gBtn.textContent = S.gamble
-    ? '🎲 赌一把：开（成功率减半 · 收益与功绩翻倍 · 失败代价加倍）'
-    : '🎲 赌一把：关（点此开启，搏一把）';
+    ? '♟ 险棋：开（成功率减半 · 收益与功绩翻倍 · 失败代价加倍）'
+    : '♟ 险棋：关（点此开启，走一步险棋）';
   gBtn.onclick = () => { S.gamble = !S.gamble; renderChapterOptions(ch); };
   const box = $('ch-options');
   box.classList.remove('hidden');
@@ -477,8 +477,8 @@ function refreshChapterUI() {
   }
   $('ch-resbar').innerHTML =
     `<span class="res ${S.health < 30 ? 'warn' : ''}">❤ 恩宠 ${S.health}</span>` +
-    `<span class="res">⚔️ 人脉 ${S.troops}</span>` +
-    `<span class="res">声望 ${S.sec.fame}</span>` +
+    `<span class="res">⚔️ 人脉值 ${S.troops}</span>` +
+    `<span class="res">声望 ${Math.max(0, S.sec.fame)}</span>` +
     `<span class="res">功绩 ${S.merit}</span>` +
     `<span class="res">名场面 ${S.scenes}</span>` +
     `<span class="res">任性 ${S.taunts}</span>` +
@@ -508,7 +508,7 @@ function chooseChapterOption(opt) {
     success = roll <= rate;
     const raw = success ? opt.win : opt.lose;
     branch = gambling ? Object.assign({}, raw, { effects: scaleEffects(raw.effects, 2) }) : raw;
-    head = `掷骰 ${roll}（成功率 ${rate}%${gambling ? ' · 赌一把' : ''}${jinnangUsed ? ' · 香囊护体' : ''}）——${success ? '成了' : '败了'}`;
+    head = `掷骰 ${roll}（成功率 ${rate}%${gambling ? ' · 险棋' : ''}${jinnangUsed ? ' · 香囊护体' : ''}）——${success ? '成了' : '败了'}`;
     if (gambling && success) unlockAch('gambleWin');  /* v5.8 成就：赌徒本色 */
     if (opt.kind === '亲为') {
       if (success && S.attrs[opt.check] >= 85) { S.scenes++; head += ' · 名场面！'; }
@@ -546,7 +546,7 @@ function chooseChapterOption(opt) {
   /* v2：战报分段揭示——先结果、再得失、最后判词句，继续按钮最后出现 */
   $('ch-result-text').innerHTML =
     `<div class="r-head reveal" id="rv-1">${head}${branch.tier && !ch.noMerit ? ` · 功绩档：${branch.tier}` : ''}</div>` +
-    `<div class="r-after reveal" id="rv-2">本章得失：${effectSummary(branch.effects)}${extraNote ? '｜' + extraNote : ''}｜当前 恩宠 ${S.health} · 人脉 ${S.troops} · 声望 ${S.sec.fame} · 功绩 ${S.merit} · 任性 ${S.taunts}${S.flags.length ? ' · 标记：' + S.flags.join(' / ') : ''}</div>` +
+    `<div class="r-after reveal" id="rv-2">本章得失：${effectSummary(branch.effects)}${extraNote ? '｜' + extraNote : ''}｜当前 恩宠 ${S.health} · 人脉值 ${S.troops} · 声望 ${Math.max(0, S.sec.fame)} · 功绩 ${S.merit} · 任性 ${S.taunts}${S.flags.length ? ' · 标记：' + S.flags.join(' / ') : ''}</div>` +
     (bio ? `<div class="r-bio reveal" id="rv-3">判词添一句：「${bio}」</div>` : '');
   rewindAvailable = success === false && !!rewindSnapshot && S.rewindLeft > 0 && rewindChapterUsed !== S.ch;
   syncAllAdBtns();
@@ -628,7 +628,7 @@ function chooseEventOption(opt) {
   $('ev-options').classList.add('hidden');
   const res = $('ev-result');
   res.classList.remove('hidden');
-  res.textContent = result + `\n（恩宠 ${S.health} · 人脉 ${S.troops} · 声望 ${S.sec.fame}）`;
+  res.textContent = result + `\n（恩宠 ${S.health} · 人脉值 ${S.troops} · 声望 ${Math.max(0, S.sec.fame)}）`;
   const closeBtn = $('btn-ev-close');
   closeBtn.classList.remove('hidden');
   closeBtn.textContent = S.deadPending ? '查看结局 →' : '继续 →';
@@ -697,7 +697,7 @@ function computeScore(endingId) {
 }
 function postText() {
   const def = ENDING_DEFS[S.endingId];
-  return `我拼了个${S.title}，${def.name}，声望${S.sec.fame}，命运评分${S.score}分，判词在此。你来评评？`;
+  return `我入宫这一局，是个${S.title}，结局${def.name}，声望${Math.max(0, S.sec.fame)}，命运评分${S.score}分，判词在此。你来评评？`;
 }
 function finishEnding(endingId) {
   clearSave();  /* v5.5：本局结束，存档作废 */
@@ -708,7 +708,7 @@ function finishEnding(endingId) {
   $('ending-quote').textContent = def.quote ? `「${def.quote}」` : '';
   $('ending-stats').innerHTML =
     `${S.title} · ${S.route} ｜ 命运值 ${S.ovr} ｜ 根基尚浅 ${S.deBuPei} 项<br>` +
-    `终局人脉 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功绩分 ${S.merit} ｜ 名场面 ${S.scenes} ｜ 任性 ${S.taunts} 次`;
+    `终局人脉值 ${S.troops} ｜ 声望 ${Math.max(0, S.sec.fame)} ｜ 功绩分 ${S.merit} ｜ 名场面 ${S.scenes} ｜ 任性 ${S.taunts} 次`;
   $('ending-score').textContent = `命运评分 ${S.score} 分`;
   pushRecord(endingId);  /* v5.7：本局成绩记入本地纪事榜 */
   collectEnding(endingId);  /* v5.8：结局谱点亮 + 终局系成就判定 */
@@ -716,7 +716,7 @@ function finishEnding(endingId) {
 }
 function renderPoster() {
   const def = ENDING_DEFS[S.endingId];
-  $('poster-sub').textContent = `${S.title} + ${S.route} ｜ 命运值 ${S.ovr} ｜ 根基尚浅 ${S.deBuPei} 项 ｜ 终局人脉 ${S.troops} ｜ 声望 ${S.sec.fame}`;
+  $('poster-sub').textContent = `${S.title} + ${S.route} ｜ 命运值 ${S.ovr} ｜ 根基尚浅 ${S.deBuPei} 项 ｜ 终局人脉值 ${S.troops} ｜ 声望 ${Math.max(0, S.sec.fame)}`;
   $('poster-biogs').innerHTML = S.bios.map(b => `<p>${b}</p>`).join('');
   $('poster-ending').textContent = def.quote ? `${def.name}：「${def.quote}」` : def.name;
   $('poster-score').textContent = `命运评分 ${S.score} 分`;
@@ -1005,7 +1005,7 @@ const ACHIEVEMENTS = [
   { id:'locks50',   icon:'🔍', name:'阅人无数', desc:'累计习技 50 次' },
   { id:'locks150',  icon:'🎣', name:'人心尽在掌握', desc:'累计习技 150 次' },
   { id:'noDeBuPei', icon:'⚖️', name:'根基稳固', desc:'一局习技结束时根基尚浅为 0 项' },
-  { id:'gambleWin', icon:'🎲', name:'赌徒本色', desc:'「赌一把」判定获胜一次' },
+  { id:'gambleWin', icon:'🎲', name:'赌徒本色', desc:'「险棋」判定获胜一次' },
   { id:'scenes3',   icon:'🎬', name:'名场面制造机', desc:'单局打出 3 个名场面' },
   { id:'taunts5',   icon:'📣', name:'任性妄为', desc:'单局任性 5 次' },
   { id:'events5',   icon:'🌀', name:'奇遇连连', desc:'单局触发 5 次随机事件' },
@@ -1573,7 +1573,7 @@ async function drawPosterCanvas() {
   ctx.fillText(`${S.title} · ${S.route}路线`, CX, 640);
   ctx.fillStyle = '#63502c';
   ctx.font = `24px ${SERIF}`;
-  ctx.fillText(`人脉 ${S.troops} ｜ 声望 ${S.sec.fame} ｜ 功绩 ${S.merit}`, CX, 682);
+  ctx.fillText(`人脉值 ${S.troops} ｜ 声望 ${Math.max(0, S.sec.fame)} ｜ 功绩 ${S.merit}`, CX, 682);
   let bioY = 740;
   if (S.fate) {
     ctx.fillStyle = '#8a6d1f';
@@ -1634,7 +1634,7 @@ const dataUrl = $('poster-canvas').toDataURL('image/png');
 const defX = ENDING_DEFS[S.endingId];
 await xhsMT.postNote({
 title: `后宫生存法则｜${defX.name} ${S.score}分`.slice(0, 20),
-content: (postText() + '\n\n\n' + S.bios.join('\n') + `\n\n${defX.name}｜命运值 ${S.ovr}｜终局人脉 ${S.troops}｜声望 ${S.sec.fame}`).slice(0, 1000),
+content: (postText() + '\n\n\n' + S.bios.join('\n') + `\n\n${defX.name}｜命运值 ${S.ovr}｜终局人脉值 ${S.troops}｜声望 ${Math.max(0, S.sec.fame)}`).slice(0, 1000),
 pageType: 'photo_publish',
 mediaInfo: { image_resources: [{ url: dataUrl}]}
 });
@@ -1662,8 +1662,8 @@ return;
     try {
       const def = ENDING_DEFS[S.endingId];
       const params = {
-        title: `我拼了个${S.title}，${def.name}，命运评分${S.score}分`,
-        content: postText() + '\n\n【此人判词】\n' + S.bios.join('\n') + `\n\n${def.name}｜命运值 ${S.ovr}｜终局人脉 ${S.troops}｜声望 ${S.sec.fame}`
+        title: `入宫一局：${S.title}·${def.name} ${S.score}分`,
+        content: postText() + '\n\n【命运判词】\n' + S.bios.join('\n') + `\n\n${def.name}｜命运值 ${S.ovr}｜终局人脉值 ${S.troops}｜声望 ${Math.max(0, S.sec.fame)}`
       };
       /* v5.9 图片版：先把海报图传 OSS，成功才带图发帖；失败明确降级为文字版 */
       const oss = window.ColorboxAI.oss && window.ColorboxAI.oss.uploadFile;
