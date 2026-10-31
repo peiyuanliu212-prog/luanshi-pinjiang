@@ -1880,6 +1880,24 @@ function renderPoster() {
 
 /* 资源预热：提前解码前三章插图，降低首次进入章节时的绘制延迟 */
 try { Object.values(CH_ART).slice(0, 3).forEach(u => { const im = new Image(); im.src = u; }); } catch (e) {}
+/* v5.11：其余章节插图与海报底图改空闲逐张解码（每 350ms 一张，玩家夺技期间在后台完成），
+   首次进入后续章节/打开海报时不再现付解码成本；全部 best-effort，失败静默。 */
+try {
+  const __preheatQueue = Object.values(CH_ART).slice(3);
+  const __preheatStep = () => {
+    const u = __preheatQueue.shift();
+    if (u) {
+      const im = new Image();
+      im.src = u;
+      if (im.decode) im.decode().catch(() => {});
+      setTimeout(__preheatStep, 350);
+    } else {
+      const bgEl = document.getElementById('poster-bg-img');
+      if (bgEl && bgEl.decode) bgEl.decode().catch(() => {});
+    }
+  };
+  setTimeout(__preheatStep, 1200);
+} catch (e) {}
 
 $('btn-start').onclick = () => { renderSetup(); showScreen('setup'); };
 $('btn-to-draft').onclick = startDraft;
@@ -2511,7 +2529,12 @@ function speckleCanvas(W, H) {
   __speckle = c;
   return c;
 }
-function drawPosterCanvas() {
+let __posterToken = 0;
+async function drawPosterCanvas() {
+  /* v5.11：分帧绘制——原同步整图绘制（墨层侵蚀 3000+ 笔触＋纸纹）在低端机上一次卡 1~3 秒，
+     拆成四段、段间让一帧，首段（底图＋眉题）立即上屏。__posterToken 防止多次触发交错绘制。 */
+  const __tk = ++__posterToken;
+  const __yieldFrame = () => new Promise(r => requestAnimationFrame(r));
   const cv = $('poster-canvas');
   if (!cv || !S.endingId) return;
   const ctx = cv.getContext('2d');
@@ -2574,6 +2597,8 @@ function drawPosterCanvas() {
       ctx.stroke();
     }
   }
+  if (__tk !== __posterToken) return;
+  await __yieldFrame();
   /* 英雄字墨层：结局名＋评分（书法体→朱红渐变→干笔侵蚀） */
   const ink = document.createElement('canvas');
   ink.width = W; ink.height = H;
@@ -2639,6 +2664,8 @@ function drawPosterCanvas() {
   ix.globalAlpha = 1;
   ix.globalCompositeOperation = 'source-over';
   ctx.drawImage(ink, 0, 0);
+  if (__tk !== __posterToken) return;
+  await __yieldFrame();
   /* 引言 */
   if (def.quote) {
     ctx.fillStyle = '#5d4a26';
@@ -2696,6 +2723,8 @@ function drawPosterCanvas() {
   ctx.font = `20px ${SANS}`;
   const dt = new Date();
   ctx.fillText(`作者：lpy ｜ ${dt.getFullYear()}-${dt.getMonth() + 1}-${dt.getDate()}`, CX, H - 40);
+  if (__tk !== __posterToken) return;
+  await __yieldFrame();
   /* 全图纸纹颗粒（统一印感） */
   ctx.globalAlpha = 0.55;
   ctx.drawImage(speckleCanvas(W, H), 0, 0);
@@ -2732,7 +2761,7 @@ $('btn-copy').onclick = async () => {
       if (typeof oss === 'function') {
         toast('正在生成海报图…');
         try {
-          drawPosterCanvas();
+          await drawPosterCanvas();  /* v5.11：分帧绘制，须等整图绘完再取 Blob */
           const blob = await new Promise(r => $('poster-canvas').toBlob(r, 'image/png', 0.92));
           if (!blob) throw new Error('海报生成失败');
           const up = await window.ColorboxAI.oss.uploadFile({ file: blob, filename: `luanshi-poster-${Date.now()}.png` });
