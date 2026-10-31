@@ -1711,3 +1711,90 @@ return;
     toast('已选中文案，长按即可复制');
   }
 };
+
+/* ---------- 音乐与音效：WebAudio 现场合成（零音频文件，容器不支持时静默跳过） ---------- */
+(function () {
+  try {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    var ctx = null, master = null, musicBus = null, sfxBus = null, timer = null, started = false;
+    var on = true;
+    try { on = localStorage.getItem('gongting_sound') !== 'off'; } catch (e) {}
+    function ensure() {
+      if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return true; }
+      try { ctx = new AC(); } catch (e) { return false; }
+      master = ctx.createGain(); master.gain.value = on ? 1 : 0; master.connect(ctx.destination);
+      musicBus = ctx.createGain(); musicBus.gain.value = 0.5; musicBus.connect(master);
+      var delay = ctx.createDelay(1); delay.delayTime.value = 0.27;
+      var fb = ctx.createGain(); fb.gain.value = 0.22;
+      var wet = ctx.createGain(); wet.gain.value = 0.32;
+      musicBus.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
+      sfxBus = ctx.createGain(); sfxBus.gain.value = 0.9; sfxBus.connect(master);
+      return true;
+    }
+    function tone(dest, freq, t, vol, dur, type) {
+      var o1 = ctx.createOscillator(); o1.type = type || 'sine'; o1.frequency.value = freq;
+      var o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = freq * 2;
+      var g = ctx.createGain(), g2 = ctx.createGain(); g2.gain.value = 0.22;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(dest);
+      o1.start(t); o2.start(t); o1.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+    }
+    /* D 大调五声音阶（宫商角徵羽），随机游走出疏朗的拨弦旋律 */
+    var SCALE = [293.66, 329.63, 369.99, 440.0, 493.88, 587.33, 739.99];
+    var step = 0, idx = 3;
+    function tick() {
+      if (!ctx) return;
+      var t = ctx.currentTime + 0.05;
+      if (step % 16 === 0) tone(musicBus, 146.83, t, 0.20, 2.6);
+      if (step % 16 === 8) tone(musicBus, 220.0, t, 0.09, 2.0);
+      if (Math.random() < 0.62) {
+        var d = Math.random() < 0.25 ? 2 : 1;
+        idx += (Math.random() < 0.5 ? -d : d);
+        if (idx < 0) idx = 0; if (idx > SCALE.length - 1) idx = SCALE.length - 1;
+        tone(musicBus, SCALE[idx], t, 0.15 + Math.random() * 0.06, 1.5);
+        if (Math.random() < 0.14 && idx + 2 < SCALE.length) tone(musicBus, SCALE[idx + 2], t + 0.03, 0.05, 1.1);
+      }
+      step++;
+    }
+    function startMusic() { if (timer || !ctx) return; tick(); timer = setInterval(tick, 520); }
+    function blip(f0, f1, dur, vol) {
+      if (!ctx || !on) return;
+      var t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'triangle'; o.frequency.setValueAtTime(f0, t);
+      o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + dur + 0.02);
+    }
+    function chime() {
+      if (!ctx || !on) return;
+      var t = ctx.currentTime + 0.03;
+      tone(sfxBus, 523.25, t, 0.12, 1.4); tone(sfxBus, 659.25, t + 0.1, 0.10, 1.4); tone(sfxBus, 783.99, t + 0.2, 0.10, 1.8);
+    }
+    document.addEventListener('pointerdown', function () {
+      if (ensure() && !started) { started = true; startMusic(); }
+    }, true);
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t.closest && t.closest('#btn-sound')) {
+        on = !on;
+        try { localStorage.setItem('gongting_sound', on ? 'on' : 'off'); } catch (err) {}
+        if (ensure()) { master.gain.setTargetAtTime(on ? 1 : 0, ctx.currentTime, 0.08); if (on && !started) { started = true; startMusic(); } }
+        syncBtn(); return;
+      }
+      if (!on || !ctx) return;
+      if (!t.closest) return;
+      if (t.closest('#btn-to-poster')) { chime(); return; }
+      if (t.closest('.person-card, .attr-btn')) { blip(1174, 1174, 0.05, 0.10); setTimeout(function () { blip(1568, 1568, 0.07, 0.10); }, 45); return; }
+      if (t.closest('button')) blip(880, 660, 0.06, 0.13);
+    }, true);
+    function syncBtn() {
+      var b = document.getElementById('btn-sound');
+      if (b) b.textContent = on ? '🔊 音乐音效：开' : '🔇 音乐音效：关';
+    }
+    syncBtn();
+    window.__snd = { isOn: function () { return on; }, hasCtx: function () { return !!ctx; } };
+  } catch (e) { /* 音频不可用时游戏照常 */ }
+})();
