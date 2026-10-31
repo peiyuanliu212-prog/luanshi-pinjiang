@@ -561,6 +561,7 @@ function chooseChapterOption(opt) {
   requestAnimationFrame(() => { const e = $('rv-1'); if (e) e.classList.add('on'); });
   setTimeout(() => { const e = $('rv-2'); if (e) e.classList.add('on'); }, 550);
   setTimeout(() => { const e = $('rv-3'); if (e) e.classList.add('on'); nextBtn.classList.add('on'); }, 1100);
+  try { if (window.__sndFx) window.__sndFx(success === null ? (branch.tier === '败' ? 'lose' : (branch.tier === '胜' || branch.tier === '大胜') ? 'win' : 'draw') : (success ? (branch.tier === '大胜' ? 'winBig' : 'win') : 'lose')); } catch (e) {}
   refreshChapterUI();
 }
 /* 章末：先判事件（触发则停在弹窗，关窗后走 proceedAfterChapter，不重复判定），再判推进 */
@@ -641,6 +642,7 @@ function chooseEventOption(opt) {
     if (S.deadPending) { finishEnding('disease'); return; }
     proceedAfterChapter();
   };
+  try { if (window.__sndFx) window.__sndFx(result.indexOf('败了') >= 0 ? 'lose' : (result.indexOf('成了') >= 0 ? 'win' : 'draw')); } catch (e) {}
   refreshChapterUI();
 }
 
@@ -1712,7 +1714,7 @@ return;
   }
 };
 
-/* ---------- 音乐与音效：WebAudio 现场合成（零音频文件，容器不支持时静默跳过） ---------- */
+/* ---------- 音乐与音效 v2：羽调式固定主题（笛箫主音+古筝琶音+磬），WebAudio 合成零文件 ---------- */
 (function () {
   try {
     var AC = window.AudioContext || window.webkitAudioContext;
@@ -1725,53 +1727,122 @@ return;
       try { ctx = new AC(); } catch (e) { return false; }
       master = ctx.createGain(); master.gain.value = on ? 1 : 0; master.connect(ctx.destination);
       musicBus = ctx.createGain(); musicBus.gain.value = 0.5; musicBus.connect(master);
-      var delay = ctx.createDelay(1); delay.delayTime.value = 0.27;
-      var fb = ctx.createGain(); fb.gain.value = 0.22;
-      var wet = ctx.createGain(); wet.gain.value = 0.32;
+      var delay = ctx.createDelay(1); delay.delayTime.value = 0.31;
+      var fb = ctx.createGain(); fb.gain.value = 0.24;
+      var wet = ctx.createGain(); wet.gain.value = 0.30;
       musicBus.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
       sfxBus = ctx.createGain(); sfxBus.gain.value = 0.9; sfxBus.connect(master);
       return true;
     }
-    function tone(dest, freq, t, vol, dur, type) {
-      var o1 = ctx.createOscillator(); o1.type = type || 'sine'; o1.frequency.value = freq;
+    /* 古筝拨弦：基音+倍频，快速起音、指数衰减 */
+    function pluck(dest, freq, t, vol, dur) {
+      var o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = freq;
       var o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = freq * 2;
-      var g = ctx.createGain(), g2 = ctx.createGain(); g2.gain.value = 0.22;
+      var g = ctx.createGain(), g2 = ctx.createGain(); g2.gain.value = 0.20;
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(dest);
       o1.start(t); o2.start(t); o1.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
     }
-    /* D 大调五声音阶（宫商角徵羽），随机游走出疏朗的拨弦旋律 */
-    var SCALE = [293.66, 329.63, 369.99, 440.0, 493.88, 587.33, 739.99];
-    var step = 0, idx = 3;
+    /* 笛箫主音：慢起音+颤音，气息感 */
+    function flute(freq, t, vol, dur) {
+      var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+      var o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.value = freq;
+      var g = ctx.createGain(), g2 = ctx.createGain(); g2.gain.value = 0.12;
+      var atk = Math.min(0.09, dur * 0.3);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + atk);
+      g.gain.setValueAtTime(vol, t + Math.max(atk, dur - 0.12));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.08);
+      var lfo = ctx.createOscillator(); lfo.frequency.value = 5.2;
+      var lg = ctx.createGain(); lg.gain.setValueAtTime(0, t);
+      lg.gain.linearRampToValueAtTime(freq * 0.004, t + Math.min(0.5, dur * 0.6));
+      lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(musicBus);
+      o.start(t); o2.start(t); lfo.start(t);
+      o.stop(t + dur + 0.15); o2.stop(t + dur + 0.15); lfo.stop(t + dur + 0.15);
+    }
+    /* 磬：单频长衰减 */
+    function qing(dest, freq, t, vol, dur) {
+      var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.05);
+    }
+    /* ===== 主题旋律（A 羽五声，8 小节 + 2 小节留白，八分音符=0.46s） ===== */
+    var A3 = 220, C4 = 261.63, D4 = 293.66, E4 = 329.63, G4 = 392, A4 = 440,
+        C5 = 523.25, D5 = 587.33, E5 = 659.25, G5 = 783.99;
+    var LEAD = {}; /* 起始八分位 -> [时值(八分), 频率] */
+    [[0,2,A4],[2,1,C5],[3,1,D5],[4,2,E5],[6,1,D5],[7,1,C5],
+     [8,2,A4],[10,1,G4],[11,1,A4],[12,3,C5],
+     [16,2,E5],[18,1,D5],[19,1,E5],[20,2,G5],[22,1,E5],[23,1,D5],
+     [24,2,C5],[26,1,D5],[27,1,C5],[28,4,A4],
+     [32,2,C5],[34,1,D5],[35,1,E5],[36,2,G5],[38,1,E5],[39,1,D5],
+     [40,2,E5],[42,1,D5],[43,1,C5],[44,3,D5],
+     [48,2,A4],[50,1,C5],[51,1,D5],[52,2,E5],[54,1,G5],[55,1,E5],
+     [56,2,D5],[58,2,C5],[60,4,A4]].forEach(function (n) { LEAD[n[0]] = [n[1], n[2]]; });
+    var CHORDS = [ /* 每小节古筝琶音音组（低→高） */
+      [110, 164.81, 220, 261.63, 329.63], [110, 164.81, 220, 261.63, 329.63],
+      [130.81, 196, 261.63, 329.63, 392], [110, 164.81, 220, 261.63, 329.63],
+      [130.81, 196, 261.63, 329.63, 392], [130.81, 196, 261.63, 329.63, 392],
+      [110, 164.81, 220, 261.63, 329.63], [110, 164.81, 220, 261.63, 329.63],
+      [110, 164.81, 220, 261.63, 329.63], [110, 164.81, 220, 261.63, 329.63]];
+    var ARP = [0, 1, 2, 3, 4, 3, 2, 1];
+    var EIGHTH = 0.46, LOOP = 80, step = 0;
     function tick() {
       if (!ctx) return;
-      var t = ctx.currentTime + 0.05;
-      if (step % 16 === 0) tone(musicBus, 146.83, t, 0.20, 2.6);
-      if (step % 16 === 8) tone(musicBus, 220.0, t, 0.09, 2.0);
-      if (Math.random() < 0.62) {
-        var d = Math.random() < 0.25 ? 2 : 1;
-        idx += (Math.random() < 0.5 ? -d : d);
-        if (idx < 0) idx = 0; if (idx > SCALE.length - 1) idx = SCALE.length - 1;
-        tone(musicBus, SCALE[idx], t, 0.15 + Math.random() * 0.06, 1.5);
-        if (Math.random() < 0.14 && idx + 2 < SCALE.length) tone(musicBus, SCALE[idx + 2], t + 0.03, 0.05, 1.1);
+      var pos = step % LOOP, bar = Math.floor(pos / 8), e = pos % 8;
+      var t = ctx.currentTime + 0.04, chord = CHORDS[bar];
+      if (pos === 0) qing(musicBus, 880, t, 0.026, 3.6); /* 每轮一记磬 */
+      if (bar < 8 || e % 2 === 0) /* 留白小节琶音减半 */
+        pluck(musicBus, chord[ARP[e]], t, e === 0 ? 0.085 : 0.05, 0.9);
+      var ln = LEAD[pos];
+      if (ln) flute(ln[1], t, 0.15, ln[0] * EIGHTH * 0.94);
+      if (pos === LOOP - 1) { /* 回环前古筝刮奏上行 */
+        var run = [220, 261.63, 293.66, 329.63, 392, 440, 523.25, 587.33];
+        for (var i = 0; i < run.length; i++) pluck(musicBus, run[i], t + i * 0.045, 0.032, 0.5);
       }
       step++;
     }
-    function startMusic() { if (timer || !ctx) return; tick(); timer = setInterval(tick, 520); }
+    function startMusic() { if (timer || !ctx) return; tick(); timer = setInterval(tick, EIGHTH * 1000); }
+    /* ===== 音效 ===== */
     function blip(f0, f1, dur, vol) {
       if (!ctx || !on) return;
       var t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = 'triangle'; o.frequency.setValueAtTime(f0, t);
+      o.type = 'sine'; o.frequency.setValueAtTime(f0, t);
       o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), t + dur);
       g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + dur + 0.02);
     }
+    window.__sndFx = function (kind) {
+      if (!ctx || !on) return;
+      var t = ctx.currentTime + 0.02;
+      if (kind === 'win' || kind === 'winBig') {
+        var seq = [220, 261.63, 329.63, 440];
+        if (kind === 'winBig') seq.push(523.25, 659.25);
+        seq.forEach(function (f, i) { pluck(sfxBus, f, t + i * 0.07, 0.12, 1.1); });
+        qing(sfxBus, 880, t + seq.length * 0.07, 0.03, 2.2);
+      } else if (kind === 'lose') {
+        pluck(sfxBus, 329.63, t, 0.10, 1.2);
+        pluck(sfxBus, 261.63, t + 0.16, 0.10, 1.3);
+        pluck(sfxBus, 220, t + 0.32, 0.11, 1.8);
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(130, t);
+        o.frequency.exponentialRampToValueAtTime(58, t + 0.4);
+        g.gain.setValueAtTime(0.10, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+        o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + 0.5);
+      } else { /* draw：平局，中音轻拨两下 */
+        pluck(sfxBus, 261.63, t, 0.09, 0.9);
+        pluck(sfxBus, 220, t + 0.11, 0.08, 1.1);
+      }
+    };
     function chime() {
       if (!ctx || !on) return;
       var t = ctx.currentTime + 0.03;
-      tone(sfxBus, 523.25, t, 0.12, 1.4); tone(sfxBus, 659.25, t + 0.1, 0.10, 1.4); tone(sfxBus, 783.99, t + 0.2, 0.10, 1.8);
+      pluck(sfxBus, 440, t, 0.11, 1.4); pluck(sfxBus, 523.25, t + 0.1, 0.10, 1.4); pluck(sfxBus, 659.25, t + 0.2, 0.10, 1.9);
     }
     document.addEventListener('pointerdown', function () {
       if (ensure() && !started) { started = true; startMusic(); }
@@ -1784,11 +1855,15 @@ return;
         if (ensure()) { master.gain.setTargetAtTime(on ? 1 : 0, ctx.currentTime, 0.08); if (on && !started) { started = true; startMusic(); } }
         syncBtn(); return;
       }
-      if (!on || !ctx) return;
-      if (!t.closest) return;
+      if (!on || !ctx || !t.closest) return;
       if (t.closest('#btn-to-poster')) { chime(); return; }
-      if (t.closest('.person-card, .attr-btn')) { blip(1174, 1174, 0.05, 0.10); setTimeout(function () { blip(1568, 1568, 0.07, 0.10); }, 45); return; }
-      if (t.closest('button')) blip(880, 660, 0.06, 0.13);
+      if (t.closest('.person-card, .attr-btn')) {
+        var tt = ctx.currentTime;
+        pluck(sfxBus, 523.25, tt, 0.09, 0.7);
+        setTimeout(function () { if (ctx) pluck(sfxBus, 659.25, ctx.currentTime, 0.08, 0.8); }, 50);
+        return;
+      }
+      if (t.closest('button')) blip(1050, 720, 0.05, 0.10);
     }, true);
     function syncBtn() {
       var b = document.getElementById('btn-sound');
