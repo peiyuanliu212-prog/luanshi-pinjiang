@@ -114,7 +114,7 @@ function renderMinePanel() {
   const filled = {};
   for (const k of ATTR_KEYS) filled[k] = (k in S.attrs) ? S.attrs[k] : ROUTE_TEMPLATES[S.route][k];
   const est = computeOVR(S.route, filled);
-  el.innerHTML = `<div class="mine-title">🌸 我的班底（已锁定 ${S.picks} / 8）｜预估总评 <b style="color:#E62B1E;">${est} / 100</b><span class="grade">${attrGrade(est)}</span>（未夺项按${S.route}底子估）</div>
+  el.innerHTML = `<div class="mine-title">🌸 我的班底（已锁定 ${S.picks} / 8）｜预估总评 <b style="color:#E62B1E;">${est} / 100</b><span class="grade">${attrGrade(est)}</span>（未习项按${S.route}底子估）</div>
     <div class="attr-grid">${ATTR_KEYS.map(k => (k in S.attrs)
       ? `<div class="attr-cell"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">${S.attrs[k]}</div><div class="a-grade">${attrGrade(S.attrs[k])}</div></div>`
       : `<div class="attr-cell empty"><div class="a-name">${ATTR_NAMES[k]}</div><div class="a-val">—</div></div>`).join('')}</div>`;
@@ -138,7 +138,7 @@ function renderDraft() {
   const stage = $('draft-stage');
   if (!S.person) {
     const remain = S.faction.people.filter(p => !S.claimed.has(S.faction.name + '-' + p.name)).length;
-    stage.innerHTML = `<div class="faction-name">🎲 本批势力：${S.faction.name}（选 1 名人物 · 本势力库中尚余 ${remain} 人）</div>
+    stage.innerHTML = `<div class="faction-name">🌸 本批宫室：${S.faction.name}（选 1 名人物 · 本宫室库中尚余 ${remain} 人）</div>
       <div class="people-grid">${S.batch.map(p => {
         const decay = routeDecay(S.route, p.route);
         const all = S.poolAttrs[p.name];
@@ -477,7 +477,7 @@ function refreshChapterUI() {
   }
   $('ch-resbar').innerHTML =
     `<span class="res ${S.health < 30 ? 'warn' : ''}">❤ 恩宠 ${S.health}</span>` +
-    `<span class="res">⚔️ 人脉值 ${S.troops}</span>` +
+    `<span class="res">👥 人脉值 ${S.troops}</span>` +
     `<span class="res">声望 ${Math.max(0, S.sec.fame)}</span>` +
     `<span class="res">功绩 ${S.merit}</span>` +
     `<span class="res">名场面 ${S.scenes}</span>` +
@@ -546,7 +546,7 @@ function chooseChapterOption(opt) {
   /* v2：战报分段揭示——先结果、再得失、最后判词句，继续按钮最后出现 */
   $('ch-result-text').innerHTML =
     `<div class="r-head reveal" id="rv-1">${head}${branch.tier && !ch.noMerit ? ` · 功绩档：${branch.tier}` : ''}</div>` +
-    `<div class="r-after reveal" id="rv-2">本章得失：${effectSummary(branch.effects)}${extraNote ? '｜' + extraNote : ''}｜当前 恩宠 ${S.health} · 人脉值 ${S.troops} · 声望 ${Math.max(0, S.sec.fame)} · 功绩 ${S.merit} · 任性 ${S.taunts}${S.flags.length ? ' · 标记：' + S.flags.join(' / ') : ''}</div>` +
+    `<div class="r-after reveal" id="rv-2">本章得失：${effectSummary(branch.effects)}${extraNote ? '｜' + extraNote : ''}｜当前 恩宠 ${S.health} · 人脉值 ${S.troops} · 声望 ${Math.max(0, S.sec.fame)} · 功绩 ${S.merit} · 任性 ${S.taunts}</div>` +
     (bio ? `<div class="r-bio reveal" id="rv-3">判词添一句：「${bio}」</div>` : '');
   rewindAvailable = success === false && !!rewindSnapshot && S.rewindLeft > 0 && rewindChapterUsed !== S.ch;
   syncAllAdBtns();
@@ -1005,13 +1005,13 @@ const ACHIEVEMENTS = [
   { id:'locks50',   icon:'🔍', name:'阅人无数', desc:'累计习技 50 次' },
   { id:'locks150',  icon:'🎣', name:'人心尽在掌握', desc:'累计习技 150 次' },
   { id:'noDeBuPei', icon:'⚖️', name:'根基稳固', desc:'一局习技结束时根基尚浅为 0 项' },
-  { id:'gambleWin', icon:'🎲', name:'赌徒本色', desc:'「险棋」判定获胜一次' },
+  { id:'gambleWin', icon:'♟', name:'险棋得手', desc:'「险棋」判定获胜一次' },
   { id:'scenes3',   icon:'🎬', name:'名场面制造机', desc:'单局打出 3 个名场面' },
   { id:'taunts5',   icon:'📣', name:'任性妄为', desc:'单局任性 5 次' },
   { id:'events5',   icon:'🌀', name:'奇遇连连', desc:'单局触发 5 次随机事件' },
   { id:'healthy',   icon:'💪', name:'圣眷正浓', desc:'以 80+ 恩宠打到终局结局' },
-  { id:'rich',      icon:'🐎', name:'人脉通达', desc:'终局人脉达到 2400' },
-  { id:'saveLuBu',  icon:'🗡️', name:'雪中送炭', desc:'在搜宫风波中被白露未作证相救' },
+  { id:'rich',      icon:'🌿', name:'人脉通达', desc:'终局人脉达到 2400' },
+  { id:'saveLuBu',  icon:'🕯', name:'雪中送炭', desc:'在搜宫风波中被白露未作证相救' },
   { id:'fates6',    icon:'🌌', name:'时运见证者', desc:'见过 6 种不同的本局时运' },
   { id:'legendEnd', icon:'🏯', name:'破局达成', desc:'达成隐藏结局（破局之人）' },
   { id:'score85',   icon:'🔥', name:'命运滔天', desc:'单局命运评分达到 85' },
