@@ -110,7 +110,7 @@ const EVENTS_EXTRA = [
     options:[
       { label:'A', text:'实话实说，她在哭', check:'fuyun',
         win:{ effects:{ fame:1 }, result:'程又青沉默了一会儿，到底只罚阿箬抄了十遍宫规，还免了她的夜值。阿箬后来见你绕着走，你说不上这是对还是错。' },
-        lose:{ effects:{ troops:-30, health:-1 }, result:'偏赶上程又青心情最坏的一夜。阿箬被罚跪到天亮，你陪着站了半宿。运气这东西，今夜没站在你这边。' } },
+        lose:{ effects:{ troops:-30, health:-1 }, result:'偏赶上程又青心情最坏的一夜。阿箬被罚站到天亮，你陪着站了半宿。运气这东西，今夜没站在你这边。' } },
       { label:'B', text:'说她是来送针线的', effects:{ troops:50, health:-2, flag:'helped_aruo' }, result:'你替她圆了过去，代价是陪程又青把剩下的铺全查完，腿都走细了。阿箬第二天塞给你一个自己缝的香包，针脚歪歪扭扭。' },
       { label:'C', text:'说什么都没看见', taunt:true, effects:{ health:1, fame:-1 }, result:'你说你眼神不好，夜里什么都看不清。程又青看了你一眼，没拆穿。阿箬的事过去了，你睁眼说瞎话的名声，也悄悄传开了。' } ] },
   { id:'P14', title:'错位的座次', weight:40,
