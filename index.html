@@ -167,9 +167,13 @@ h3 { font-size: 15px; margin-bottom: 8px; }
 .load-bar b { display: block; height: 100%; width: 0%; border-radius: 99px; background: linear-gradient(90deg, #C9A227, #E62B1E); transition: width .18s ease; }
 .load-pct { margin-top: 10px; color: #6d5518; font-size: 13px; }
 .load-tip { margin-top: 22px; color: #977f4e; font-size: 12.5px; }
+.load-bg { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; margin: 0; border-radius: 0; opacity: .5; }
+#loading .load-box { position: relative; }
+.load-frame { position: relative; background: rgba(253,248,232,.93); border: 1.5px solid #C9A227; outline: 1px solid rgba(201,162,39,.45); outline-offset: 4px; border-radius: 8px; padding: 30px 22px 22px; box-shadow: 0 12px 44px rgba(60,40,10,.28); }
+.arch-bg { height: 120px; aspect-ratio: auto; margin-bottom: 12px; }
 .ndot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #E62B1E; vertical-align: 2px; }
-.notice-item { padding: 8px 0; border-bottom: 1px dashed rgba(120,96,40,.3); }
-.notice-item:last-child { border-bottom: none; }
+.notice-item { background: rgba(201,162,39,.07); border: 1px solid rgba(201,162,39,.35); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+.notice-item:last-child { margin-bottom: 0; }
 .notice-v { font-weight: 800; color: #8a6d1f; }
 .modal { position: fixed; inset: 0; background: rgba(26,26,26,.45); display: flex; align-items: center; justify-content: center; padding: 18px; z-index: 50; }
 .modal-inner { background: #fff; border-radius: 16px; padding: 22px 18px; max-width: 520px; width: 100%; max-height: 86vh; overflow-y: auto; }
@@ -246,13 +250,14 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
 </style>
 </head>
 <body>
-<div id="loading"><div class="load-box">
+<div id="loading"><div class="hero-art load-bg"></div><div class="load-box"><div class="load-frame">
+  <span class="seal">拼将</span>
   <div class="load-title">乱世拼将</div>
   <div class="load-sub">SANGUO PUZZLE GENERAL</div>
   <div class="load-bar"><b id="load-fill"></b></div>
   <div class="load-pct" id="load-pct">加载中 0%</div>
   <div class="load-tip">拼一个你出来 · 点击任意处跳过</div>
-</div></div>
+</div></div></div>
 <div class="wrap">
   <div class="progress" id="progress">《乱世拼将》</div>
   <!-- 性能预热：首页停留时先解码两张头像精灵图，进夺技首批不再卡顿（2px 透明，不可见） -->
@@ -418,6 +423,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
 
   <!-- 存档（v5.15）：当前对局 + 战绩/收集聚合 -->
   <section id="screen-archive" class="screen hidden">
+    <div class="hero-art arch-bg"></div>
     <div class="card">
       <h2>📂 当前存档</h2>
       <div id="archive-cur"></div>
