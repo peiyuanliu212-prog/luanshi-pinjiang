@@ -74,7 +74,14 @@ h3 { font-size: 15px; margin-bottom: 8px; }
 .draft-count { font-size: 13px; color: #8a7f6a; }
 .faction-name { font-size: 15px; font-weight: 700; margin: 8px 0 10px; }
 .people-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.person-card { text-align: left; background: #fdfaf3; border: 2px solid #e7ddc8; border-radius: 12px; padding: 12px; cursor: pointer; }
+.person-card { position: relative; text-align: left; background: #fdfaf3; border: 2px solid #e7ddc8; border-radius: 12px; padding: 12px; cursor: pointer; }
+/* v5.14 时期卡（巅峰形态） */
+.peak-ribbon { position: absolute; top: 6px; right: 6px; z-index: 2; background: linear-gradient(135deg, #C9A227, #a87f14); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; letter-spacing: 1px; }
+.peak-box { margin: 0 0 10px; padding: 10px 12px; border: 1.5px dashed #C9A227; border-radius: 10px; background: #fffbe8; text-align: left; }
+.peak-box .peak-info { font-size: 13px; line-height: 1.55; color: #7a5b12; margin-bottom: 8px; }
+.peak-box.on { border-style: solid; background: linear-gradient(135deg, #fff3c4, #ffe9a8); }
+.peak-box .peak-on { font-size: 13.5px; font-weight: 700; color: #8a6410; }
+.tier-peak { filter: drop-shadow(0 0 7px rgba(201, 162, 39, .9)); }
 .person-card.active { border-color: #E62B1E; background: #fff5ef; }
 .person-card.tier-top { border-color: #C9A227; background: #fffbe8; }
 .person-name { font-size: 17px; font-weight: 800; }
@@ -429,20 +436,21 @@ const ROUTE_WEIGHTS = {
 };
 
 /* ---------- 档位修正（任务书 §1；v3 扩为五档稀有度 S/A/B/C/D；v4 P1 拉开档差） ---------- */
-const TIER_MOD = { S:14, A:8, B:2, C:-4, D:-8 };
+const TIER_MOD = { SSS:22, SS:18, S:14, A:8, B:2, C:-4, D:-8 };  /* v5.14：SS/SSS 仅巅峰形态用（时期卡），基础抽池仍 S–D 五档 */
 /* 绝活（擅长项）按档分级：加成/保底/封顶三件套，保证 S 绝活与 B 擅长拉开身位 */
-const SPECIAL_MOD = { S:10, A:8, B:5, C:3, D:0 };
-const SPECIAL_FLOOR = { S:96, A:90, B:83, C:76, D:0 };
-const SPECIAL_CAP = { S:99, A:96, B:90, C:84, D:78 };  /* 2026-10-30 总指挥定：A 级绝活上限 99→96，与 S 级 99 拉开档差 */
+const SPECIAL_MOD = { SSS:14, SS:12, S:10, A:8, B:5, C:3, D:0 };
+const SPECIAL_FLOOR = { SSS:98, SS:97, S:96, A:90, B:83, C:76, D:0 };
+const SPECIAL_CAP = { SSS:99, SS:99, S:99, A:96, B:90, C:84, D:78 };  /* 2026-10-30 总指挥定：A 级绝活上限 99→96，与 S 级 99 拉开档差；v5.14 巅峰档封顶 99 不破顶 */
 const SPECIAL_OVERRIDE = { '华雄': 91 };  /* 定版基准：华雄 C 档绝活武力 91，不动 */
 
 /* ---------- 稀有度（v3 人物阶级）：标签 + 抽取权重 ----------
  * 全库 90 人、每阵营 15 人，严格单调金字塔（越往下人越多）：
  *   S 8 · A 13 · B 19 · C 23 · D 27
- *   曹魏 S2 A2 B3 C3 D5｜蜀汉 S2 A2 B3 C4 D4｜孙吴 S2 A2 B3 C4 D4
- *   西凉 S2 A3 B3 C4 D3｜河北 S0 A2 B4 C4 D5｜荆扬 S0 A2 B3 C4 D6
+ *   曹魏 S2 A3 B3 C2 D5｜蜀汉 S2 A3 B4 C2 D4｜孙吴 S2 A2 B3 C4 D4
+ *   西凉 S2 A2 B2 C6 D3｜河北 S0 A2 B3 C5 D5｜荆扬 S0 A1 B4 C4 D6
+ *   （v5.14 评级校准：荀彧/庞统↑A、荀攸/法正/姜维↑B，刘表/庞德↓B、徐荣/张绣/审配↓C，全局配额与概率不变）
  * 抽取权重：S 最低（最难出）、D 最高：S 1 / A 3 / B 6 / C 10 / D 15。 */
-const RARITY_LABEL = { S:'S 级', A:'A 级', B:'B 级', C:'C 级', D:'D 级' };
+const RARITY_LABEL = { SSS:'SSS 级', SS:'SS 级', S:'S 级', A:'A 级', B:'B 级', C:'C 级', D:'D 级' };
 const TIER_WEIGHT = { S:1, A:3, B:6, C:10, D:15 };
 
 /* 人物数值生成：模板 + 档位修正；绝活再过加成/保底/封顶（特例白名单最后覆盖），钳 40–99 */
@@ -497,10 +505,10 @@ const FACTIONS = [
     { name:'司马懿', route:'谋士', tier:'A', special:'insight' },
     { name:'张辽', route:'统帅', tier:'A', special:'command' },
     { name:'夏侯惇', route:'猛将', tier:'B', special:'might' },
-    { name:'荀彧', route:'治世', tier:'B', special:'politics' },
+    { name:'荀彧', route:'治世', tier:'A', special:'politics', peak:{ tier:'SS', label:'王佐之才', era:'建安初 · 迎奉天子' } },
     { name:'徐晃', route:'猛将', tier:'B', special:'might' },
     { name:'夏侯渊', route:'猛将', tier:'C', special:'cavalry' },
-    { name:'荀攸', route:'谋士', tier:'C', special:'tactics' },
+    { name:'荀攸', route:'谋士', tier:'B', special:'tactics' },
     { name:'许褚', route:'猛将', tier:'C', special:'might' },
     { name:'曹仁', route:'统帅', tier:'D', special:'command' },
     { name:'臧霸', route:'猛将', tier:'D', special:'might' },
@@ -511,14 +519,14 @@ const FACTIONS = [
     { name:'诸葛亮', route:'谋士', tier:'S', special:'intellect' },
     { name:'关羽', route:'猛将', tier:'S', special:'might' },
     { name:'张飞', route:'猛将', tier:'A', special:'might' },
-    { name:'赵云', route:'猛将', tier:'A', special:'cavalry' },
+    { name:'赵云', route:'猛将', tier:'A', special:'cavalry', peak:{ tier:'SS', label:'一身是胆', era:'建安十三年 · 长坂坡' } },
     { name:'刘备', route:'枭雄', tier:'B', special:'charisma' },
-    { name:'庞统', route:'谋士', tier:'B', special:'intellect' },
-    { name:'黄忠', route:'猛将', tier:'B', special:'archery' },
+    { name:'庞统', route:'谋士', tier:'A', special:'intellect', peak:{ tier:'SS', label:'凤雏', era:'建安十七年 · 入蜀献策' } },
+    { name:'黄忠', route:'猛将', tier:'B', special:'archery', peak:{ tier:'S', label:'老当益壮', era:'建安二十四年 · 定军山' } },
     { name:'魏延', route:'猛将', tier:'C', special:'might' },
-    { name:'法正', route:'谋士', tier:'C', special:'tactics' },
+    { name:'法正', route:'谋士', tier:'B', special:'tactics' },
     { name:'马良', route:'治世', tier:'C', special:'literature' },
-    { name:'姜维', route:'统帅', tier:'C', special:'tactics' },
+    { name:'姜维', route:'统帅', tier:'B', special:'tactics', peak:{ tier:'S', label:'继业', era:'诸葛遗志 · 九伐中原' } },
     { name:'王平', route:'统帅', tier:'D', special:'command' },
     { name:'糜竺', route:'治世', tier:'D', special:'charisma' },
     { name:'马谡', route:'谋士', tier:'D', special:'tactics' },
@@ -531,7 +539,7 @@ const FACTIONS = [
     { name:'太史慈', route:'猛将', tier:'B', special:'archery' },
     { name:'吕蒙', route:'统帅', tier:'B', special:'tactics' },
     { name:'鲁肃', route:'治世', tier:'B', special:'politics' },
-    { name:'孙坚', route:'猛将', tier:'C', special:'nerve' },
+    { name:'孙坚', route:'猛将', tier:'C', special:'nerve', peak:{ tier:'A', label:'江东猛虎', era:'初平二年 · 破董先锋' } },
     { name:'甘宁', route:'猛将', tier:'C', special:'might' },
     { name:'程普', route:'统帅', tier:'C', special:'command' },
     { name:'黄盖', route:'猛将', tier:'C', special:'nerve' },
@@ -540,14 +548,14 @@ const FACTIONS = [
     { name:'顾雍', route:'治世', tier:'D', special:'politics' },
     { name:'孙皓', route:'枭雄', tier:'D', special:'charisma' } ] },
   { name:'西凉', people:[ /* S2 A3 B3 C4 D3 */
-    { name:'吕布', route:'猛将', tier:'S', special:'might' },
+    { name:'吕布', route:'猛将', tier:'S', special:'might', peak:{ tier:'SSS', label:'人中吕布', era:'初平元年 · 虎牢关' } },
     { name:'贾诩', route:'谋士', tier:'S', special:'insight' },
-    { name:'马超', route:'猛将', tier:'A', special:'cavalry' },
+    { name:'马超', route:'猛将', tier:'A', special:'cavalry', peak:{ tier:'SS', label:'锦马超', era:'建安十六年 · 渭南之战' } },
     { name:'董卓', route:'枭雄', tier:'A', special:'nerve' },
-    { name:'庞德', route:'猛将', tier:'A', special:'might' },
+    { name:'庞德', route:'猛将', tier:'B', special:'might' },
     { name:'马腾', route:'统帅', tier:'B', special:'command' },
-    { name:'张绣', route:'猛将', tier:'B', special:'cavalry' },
-    { name:'徐荣', route:'统帅', tier:'B', special:'tactics' },
+    { name:'张绣', route:'猛将', tier:'C', special:'cavalry' },
+    { name:'徐荣', route:'统帅', tier:'C', special:'tactics' },
     { name:'华雄', route:'猛将', tier:'C', special:'might' },
     { name:'李傕', route:'枭雄', tier:'C', special:'nerve' },
     { name:'郭汜', route:'猛将', tier:'C', special:'might' },
@@ -561,7 +569,7 @@ const FACTIONS = [
     { name:'袁绍', route:'枭雄', tier:'B', special:'charisma' },
     { name:'颜良', route:'猛将', tier:'B', special:'might' },
     { name:'文丑', route:'猛将', tier:'B', special:'might' },
-    { name:'审配', route:'谋士', tier:'B', special:'nerve' },
+    { name:'审配', route:'谋士', tier:'C', special:'nerve' },
     { name:'高览', route:'猛将', tier:'C', special:'might' },
     { name:'鞠义', route:'统帅', tier:'C', special:'command' },
     { name:'逢纪', route:'谋士', tier:'C', special:'insight' },
@@ -573,7 +581,7 @@ const FACTIONS = [
     { name:'袁尚', route:'枭雄', tier:'D', special:'charisma' } ] },
   { name:'荆扬', people:[ /* S0 A2 B3 C4 D6 */
     { name:'司马徽', route:'谋士', tier:'A', special:'insight' },
-    { name:'刘表', route:'治世', tier:'A', special:'literature' },
+    { name:'刘表', route:'治世', tier:'B', special:'literature' },
     { name:'文聘', route:'统帅', tier:'B', special:'command' },
     { name:'蒯越', route:'谋士', tier:'B', special:'tactics' },
     { name:'袁术', route:'枭雄', tier:'B', special:'charisma' },
@@ -1033,7 +1041,7 @@ const round10 = v => Math.round(v / 10) * 10;
 const S = {
   route: null, origin: null,
   attrs: {}, lockedFrom: {}, claimed: new Set(), swapsLeft: 3, picks: 0,
-  faction: null, person: null, poolAttrs: {}, batch: [],
+  faction: null, person: null, poolAttrs: {}, batch: [], peaked: {},  /* v5.14：本局已唤醒巅峰的人物 { name: true } */
   ovr: 0, deBuPei: 0, title: '', startFaction: '',
   ch: 0, health: 100, troops: 0,
   sec: { fame:0, network:0, loyalty:0, ambition:0, controversy:0 },
@@ -1093,7 +1101,21 @@ function rollFaction() {
   const unclaimed = S.faction.people.filter(p => !S.claimed.has(S.faction.name + '-' + p.name));
   S.batch = drawBatch(unclaimed, tianmingBoost);
   tianmingBoost = false;
-  S.batch.forEach(p => { S.poolAttrs[p.name] = genPlayerAttr(p.route, p.tier, p.special, p.name); });
+  S.batch.forEach(p => { S.poolAttrs[p.name] = genPlayerAttr(p.route, effTier(p), p.special, p.name); });
+}
+/* v5.14 时期卡（巅峰形态）：effTier 取当前生效档位——已唤醒巅峰者用 peak.tier，否则基础档。
+ * 巅峰只改面板生成档位：抽取权重/配额/保底仍按基础档走，数值经 genPlayerAttr 钳 40–99 不破顶。 */
+function effTier(p) { return (p.peak && S.peaked && S.peaked[p.name]) ? p.peak.tier : p.tier; }
+function applyPeak(p) {
+  if (!p || !p.peak) return false;
+  S.peaked = S.peaked || {};
+  S.peaked[p.name] = true;
+  S.poolAttrs[p.name] = genPlayerAttr(p.route, p.peak.tier, p.special, p.name);
+  return true;
+}
+function findPersonByName(name) {
+  for (const f of FACTIONS) { const x = f.people.find(y => y.name === name); if (x) return x; }
+  return null;
 }
 /* 按稀有度权重不放回抽取一批（每批 5 人）：S 权重最低、D 最高，顶配人物明显更稀有 */
 function drawBatch(people, boostS) {
@@ -1127,6 +1149,7 @@ function startDraft() {
   S.__recorded = false;  /* v5.7：新局重置记账标记 */
   S.__collected = false;  /* v5.8：新局重置收集标记 */
   S.attrs = {}; S.lockedFrom = {}; S.claimed = new Set(); S.swapsLeft = 3; S.picks = 0;
+  S.peaked = {};  /* v5.14：新局重置巅峰唤醒记录 */
   rollFaction();
   showScreen('draft');
   renderDraft();
@@ -1199,10 +1222,12 @@ function renderDraft() {
         const povr = computeOVR(p.route, all);
         const top3 = ATTR_KEYS.slice().sort((a, b) => all[b] - all[a]).slice(0, 3)
           .map(k => `${ATTR_NAMES[k]} ${all[k]}<span class="grade">${attrGrade(all[k])}</span>`).join(' · ');
-        return `<button class="person-card tier-${p.tier.toLowerCase()}${p.tier === 'S' ? ' tier-top' : ''}" data-person="${p.name}">
+        const isPeak = !!(p.peak && S.peaked && S.peaked[p.name]);
+        return `<button class="person-card tier-${p.tier.toLowerCase()}${p.tier === 'S' || isPeak ? ' tier-top' : ''}" data-person="${p.name}">
+          ${isPeak ? '<span class="peak-ribbon">巅峰</span>' : ''}
           ${avatarHTML(p.name)}
           <div class="person-name">${p.name}<span class="grade">${attrGrade(povr)}</span></div>
-          <div class="person-meta">${p.route} · ${RARITY_LABEL[p.tier]} · 总评 ${povr} / 100 · 衰减 ×${decay.toFixed(2)}</div>
+          <div class="person-meta">${p.route} · ${isPeak ? '🌟 巅峰·' + RARITY_LABEL[p.peak.tier] + ' ' + p.peak.label : RARITY_LABEL[p.tier]} · 总评 ${povr} / 100 · 衰减 ×${decay.toFixed(2)}</div>
           <div class="person-top">${top3}</div></button>`;
       }).join('')}</div>`;
     stage.querySelectorAll('[data-person]').forEach(b => b.onclick = () => {
@@ -1211,8 +1236,19 @@ function renderDraft() {
     });
   } else {
     const p = S.person, all = S.poolAttrs[p.name], decay = routeDecay(S.route, p.route);
-    stage.innerHTML = `<span class="tier-${p.tier.toLowerCase()}" style="display:inline-block;">${avatarHTML(p.name, 'med')}</span><div class="faction-name">${S.faction.name} · ${p.name}（${p.route}）——夺走哪一项？</div>
-      <div class="hint" style="margin:0 0 8px;">${RARITY_LABEL[p.tier]}人物 · ${decay < 1 ? `跨路线衰减 ×${decay.toFixed(2)}（下方为衰减后数值，绝活标注原值）` : '与你同路线，无衰减'}</div>
+    const isPeak = !!(p.peak && S.peaked && S.peaked[p.name]);
+    let peakHTML = '';
+    if (p.peak && isPeak) {
+      peakHTML = `<div class="peak-box on"><div class="peak-on">🌟 巅峰再临：${p.peak.era} · ${p.peak.label} —— 当前为 ${RARITY_LABEL[p.peak.tier]} 巅峰面板</div></div>`;
+    } else if (p.peak) {
+      const btn = window.__adVisible
+        ? `<button class="btn-ghost" id="btn-peak" ${adBusy || adRewardDone ? 'disabled' : ''}>${adRewardDone ? '📺 今日广告奖励已领完' : (adBusy ? '📺 广告播放中…' : '📺 巅峰再临（看广告，唤醒巅峰）')}</button>`
+        : `<div class="hint">（在虎扑 App 内看广告，可唤醒 TA 的巅峰时期）</div>`;
+      peakHTML = `<div class="peak-box"><div class="peak-info">🏯 时期卡：此人正值寻常时期（${RARITY_LABEL[p.tier]}）。其生涯巅峰在 <b>${p.peak.era}</b> ——「${p.peak.label}」，可达 <b>${RARITY_LABEL[p.peak.tier]}</b> 面板。</div>${btn}</div>`;
+    }
+    stage.innerHTML = `<span class="${isPeak ? 'tier-peak' : 'tier-' + p.tier.toLowerCase()}" style="display:inline-block;">${avatarHTML(p.name, 'med')}</span><div class="faction-name">${S.faction.name} · ${p.name}（${p.route}）——夺走哪一项？</div>
+      <div class="hint" style="margin:0 0 8px;">${isPeak ? `🌟 巅峰·${RARITY_LABEL[p.peak.tier]} ${p.peak.label}` : RARITY_LABEL[p.tier] + '人物'} · ${decay < 1 ? `跨路线衰减 ×${decay.toFixed(2)}（下方为衰减后数值，绝活标注原值）` : '与你同路线，无衰减'}</div>
+      ${peakHTML}
       <div class="attr-grid">${ATTR_KEYS.map(k => {
         const locked = k in S.attrs;
         const val = Math.max(30, Math.floor(all[k] * decay));
@@ -1223,6 +1259,17 @@ function renderDraft() {
       }).join('')}</div>
       <p class="hint" style="margin-top:10px;">点一项即锁定为你的最终属性（已含衰减）。</p>`;
     stage.querySelectorAll('[data-attr]').forEach(b => b.onclick = () => lockAttr(b.dataset.attr));
+    const pkBtn = $('btn-peak');
+    if (pkBtn) pkBtn.onclick = async () => {
+      if (adBusy || adRewardDone || !S.person || !S.person.peak) return;
+      const target = S.person;
+      if (await playRewardAd('peak', { name: target.name })) {
+        applyPeak(target);
+        if (typeof Snd !== 'undefined') Snd.sfx('open');
+        renderDraft();
+        adToast('巅峰再临——' + target.name + ' 已至生涯巅峰');
+      } else if (lastAdMsg) adToast(lastAdMsg);
+    };
   }
   const lockedKeys = Object.keys(S.attrs);
   $('draft-locked').innerHTML = lockedKeys.length
@@ -2037,6 +2084,7 @@ async function restoreGame() {
   __restoring = true;
   Object.assign(S, d.S);
   S.claimed = new Set(d.S.claimed || []);
+  S.peaked = S.peaked || {};  /* v5.14：旧存档无巅峰记录时兜底 */
   tianmingBoost = !!d.tianmingBoost;
   rewindChapterUsed = d.rewindChapterUsed || 0;
   rewindSnapshot = null; rewindAvailable = false;
@@ -2064,6 +2112,9 @@ async function restoreGame() {
         tianmingBoost = true;
         rollFaction();
         grantedMsg = '广告奖励已补发：天命临身——本批贵人云集';
+      } else if (!toChapter && pendingAd.type === 'peak' && pendingAd.snap && pendingAd.snap.name) {
+        const pp = findPersonByName(pendingAd.snap.name);
+        if (pp && applyPeak(pp)) grantedMsg = '广告奖励已补发：巅峰再临——' + pp.name + ' 已至生涯巅峰';
       } else if (toChapter && pendingAd.type === 'jinnang') {
         S.jinnang = true;
         grantedMsg = '广告奖励已补发：锦囊已备下';
