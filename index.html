@@ -1242,7 +1242,7 @@ function renderDraft() {
       peakHTML = `<div class="peak-box on"><div class="peak-on">🌟 巅峰再临：${p.peak.era} · ${p.peak.label} —— 当前为 ${RARITY_LABEL[p.peak.tier]} 巅峰面板</div></div>`;
     } else if (p.peak) {
       const btn = window.__adVisible
-        ? `<button class="btn-ghost" id="btn-peak" ${adBusy || adRewardDone ? 'disabled' : ''}>${adRewardDone ? '📺 今日广告奖励已领完' : (adBusy ? '📺 广告播放中…' : '📺 巅峰再临（看广告，唤醒巅峰）')}</button>`
+        ? `<button class="btn-ghost" id="btn-peak" ${adBusy || adRewardDone ? 'disabled' : ''}>${adRewardDone ? '📺 广告奖励已领完' : (adBusy ? '📺 广告播放中…' : '📺 巅峰再临（看广告，唤醒巅峰）')}</button>`
         : `<div class="hint">（在虎扑 App 内看广告，可唤醒 TA 的巅峰时期）</div>`;
       peakHTML = `<div class="peak-box"><div class="peak-info">🏯 时期卡：此人正值寻常时期（${RARITY_LABEL[p.tier]}）。其生涯巅峰在 <b>${p.peak.era}</b> ——「${p.peak.label}」，可达 <b>${RARITY_LABEL[p.peak.tier]}</b> 面板。</div>${btn}</div>`;
     }
@@ -1268,7 +1268,7 @@ function renderDraft() {
         if (typeof Snd !== 'undefined') Snd.sfx('open');
         renderDraft();
         adToast('巅峰再临——' + target.name + ' 已至生涯巅峰');
-      } else if (lastAdMsg) adToast(lastAdMsg);
+      } else if (lastAdMsg) { renderDraft(); adToast(lastAdMsg); }  /* 失败也重渲染：平台拒绝（UNAVAILABLE）后的锁定态立即显形 */
     };
   }
   const lockedKeys = Object.keys(S.attrs);
@@ -2104,7 +2104,7 @@ async function restoreGame() {
   let grantedMsg = '';
   if (pendingAd) {
     await refreshAdState();
-    if (adRewardDone) {
+    if (adTaskCompleted) {
       if (!toChapter && pendingAd.type === 'swap') {
         S.swapsLeft++;
         grantedMsg = '广告奖励已补发：换一批 +1 次';
@@ -2457,13 +2457,17 @@ $('btn-records-gallery').onclick = openGallery;
 $('btn-gallery-back').onclick = () => showScreen('home');
 
 let adBusy = false, adRewardDone = false, lastAdMsg = '';
+let adTaskCompleted = false;  /* v5.14.1：平台任务状态快照（completed=本周期活动次数已领），仅 restoreGame 补发核对用 */
 let tianmingBoost = false;
 let rewindSnapshot = null, rewindChapterUsed = 0, rewindAvailable = false;
 function vataskReady() {
   return !!(window.ColorboxAI && window.ColorboxAI.vatask && typeof window.ColorboxAI.vatask.completeRewardVideo === 'function');
 }
 async function playRewardAd(kind, snap) {
-  if (adBusy || adRewardDone || !vataskReady()) return false;
+  /* v5.14.1 口径修正：不再凭本地缓存的任务状态预锁——实测平台 reward 任务可重复完成，
+     「completed」只是活动次数口径。以 SDK 返回为准：仅当平台以 reason=UNAVAILABLE 明确拒绝
+     （任务不可用或已完成）才置 adRewardDone 锁定按钮；其余成败都由本次调用结果决定。 */
+  if (adBusy || !vataskReady()) return false;
   /* v5.5：拉起广告前先落盘并留标记——容器看完广告可能重载页面，回来靠存档恢复进度 */
   /* v5.10：标记升级为 JSON，记下待发奖励类型（改命附带抉择前快照）；
      若页面被容器销毁、回调永不返回，重载后由 restoreGame 凭平台任务状态核对补发 */
@@ -2474,7 +2478,10 @@ async function playRewardAd(kind, snap) {
   try {
     const res = await window.ColorboxAI.vatask.completeRewardVideo();
     ok = !!(res && res.code === 200 && res.data && res.data.rewarded);
-    if (!ok) lastAdMsg = (res && res.message) || '未获得奖励';
+    if (!ok) {
+      lastAdMsg = (res && res.message) || '未获得奖励';
+      if (res && res.data && res.data.reason === 'UNAVAILABLE') adRewardDone = true;  /* 平台明示任务已完成/不可用才锁定 */
+    }
   } catch (e) { lastAdMsg = '广告拉起失败，请重试'; }
   adBusy = false;
   await refreshAdState();
@@ -2486,16 +2493,16 @@ function syncAllAdBtns() {
   const swap = $('btn-ad-swap');
   swap.classList.toggle('hidden', !vis);
   swap.disabled = adBusy || adRewardDone || !!S.person;
-  swap.textContent = adRewardDone ? '📺 今日广告奖励已领完' : (adBusy ? '📺 广告播放中…' : '📺 看广告换一批');
+  swap.textContent = adRewardDone ? '📺 广告奖励已领完' : (adBusy ? '📺 广告播放中…' : '📺 看广告换一批');
   const tm = $('btn-ad-tianming');
   tm.classList.toggle('hidden', !vis);
   tm.disabled = adBusy || adRewardDone || !!S.person;
-  tm.textContent = adRewardDone ? '📺 今日广告奖励已领完' : (adBusy ? '📺 广告播放中…' : '📺 天命临身（看广告，本批贵人云集）');
+  tm.textContent = adRewardDone ? '📺 广告奖励已领完' : (adBusy ? '📺 广告播放中…' : '📺 天命临身（看广告，本批贵人云集）');
   const jn = $('btn-ad-jinnang');
   if (jn) {
     jn.classList.toggle('hidden', !vis);
     jn.disabled = adBusy || adRewardDone || !!S.jinnang;
-    jn.textContent = adRewardDone ? '📺 今日广告奖励已领完' : (adBusy ? '📺 广告播放中…' : (S.jinnang ? '🧧 锦囊已在囊中（下个判定生效）' : '📺 看广告·请锦囊（判定更稳）'));
+    jn.textContent = adRewardDone ? '📺 广告奖励已领完' : (adBusy ? '📺 广告播放中…' : (S.jinnang ? '🧧 锦囊已在囊中（下个判定生效）' : '📺 看广告·请锦囊（判定更稳）'));
   }
   const rw = $('btn-ad-rewind');
   if (rw) {
@@ -2523,7 +2530,7 @@ async function refreshAdState() {
     const st = await window.ColorboxAI.vatask.getActivityTaskState();
     if (st && st.code === 200 && st.data) {
       const task = (st.data.tasks || []).find(x => x.taskCode === 'reward');
-      adRewardDone = !!(task && task.status === 'completed');
+      adTaskCompleted = !!(task && task.status === 'completed');  /* 仅供 restoreGame 补发核对，不再据此预锁广告按钮（v5.14.1） */
       window.__adVisible = true;
     } else {
       window.__adVisible = false;
