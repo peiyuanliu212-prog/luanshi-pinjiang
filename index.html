@@ -2075,6 +2075,7 @@ try {
 
 /* ---------- v5.15 更新公告 ---------- */
 const NOTICES = [
+  { v: 'v5.18', d: '11月1日', t: '广告奖励补发修复', items: ['修复看完广告退出重进后，巅峰再临等奖励丢失的问题', '广告中途闪退回来读档，奖励会凭平台记录自动补发'] },
   { v: 'v5.17', d: '11月1日', t: '操作响应优化', items: ['针对安卓机型点击迟滞专项优化：图鉴图片瘦身、绘制降负、存档不再卡点击', '操作应更跟手；如仍有明显卡顿，欢迎在评论区报机型'] },
   { v: 'v5.16', d: '11月1日', t: '视觉焕新', items: ['加载页换上名将主视觉，标题改书法体', '包体拆分瘦身，后续更新不再卡体积'] },
   { v: 'v5.15', d: '11月1日', t: '开始页焕新', items: ['新增加载页、存档页与更新公告栏', '存档页可查当前进度、战绩与收集进度'] },
@@ -2216,22 +2217,31 @@ async function restoreGame() {
   rewindChapterUsed = d.rewindChapterUsed || 0;
   rewindSnapshot = null; rewindAvailable = false;
   /* 读 PENDING 待发奖励标记（旧版无 type 标记自然降级为仅恢复进度） */
+  /* v5.18：核对落定前不删标记——旧版先删后查，平台口径一对不上奖励就永久丢失（真机实锤） */
   let adInterrupted = false, pendingAd = null;
   try {
     const raw = localStorage.getItem(PENDING_AD_KEY);
-    localStorage.removeItem(PENDING_AD_KEY);
     if (raw) {
       adInterrupted = true;
       const j = JSON.parse(raw);
       if (j && j.type && Date.now() - (j.ts || 0) < 30 * 60 * 1000) pendingAd = j;
+      else localStorage.removeItem(PENDING_AD_KEY);  /* 无类型/已过期：作废 */
     }
-  } catch (e) { adInterrupted = adInterrupted || false; }
+  } catch (e) {}
   const toChapter = d.phase === 'chapter' && S.ch >= 1;
-  /* 先向平台核对任务状态：平台记录为已完成，才补发待发奖励（不凭本地标记自行发放） */
+  /* 向平台核对（不凭本地标记自行发放）：主信号＝服务端次数余额较看广告前增加——完播由服务端自动记账、跨重载不丢；
+     v5.14–v5.17 的旧标记无基线时，退回任务 status 口径；查不到平台状态则保留标记、下次读档再核 */
   let grantedMsg = '';
   if (pendingAd) {
     await refreshAdState();
-    if (adTaskCompleted) {
+    if (!adStateOk) { await new Promise(r => setTimeout(r, 900)); await refreshAdState(); }  /* SDK 注入稍晚时给一次重试 */
+    let verified = false, decided = false;
+    if (adStateOk) {
+      decided = true;
+      if (typeof pendingAd.base === 'number' && typeof adChanceCount === 'number') verified = adChanceCount > pendingAd.base;
+      else verified = adTaskCompleted;
+    }
+    if (verified) {
       if (!toChapter && pendingAd.type === 'swap') {
         S.swapsLeft++;
         grantedMsg = '广告奖励已补发：换一批 +1 次';
@@ -2256,6 +2266,7 @@ async function restoreGame() {
         grantedMsg = '广告奖励已补发：改命成功——回到抉择之前';
       }
     }
+    if (verified || decided) { try { localStorage.removeItem(PENDING_AD_KEY); } catch (e) {} }  /* v5.18：核对落定才删；未决保留 */
   }
   if (toChapter) {
     showScreen('chapter');
@@ -2592,7 +2603,8 @@ $('btn-records-gallery').onclick = openGallery;
 $('btn-gallery-back').onclick = () => showScreen('home');
 
 let adBusy = false, adRewardDone = false, lastAdMsg = '';
-let adTaskCompleted = false;  /* v5.14.1：平台任务状态快照（completed=本周期活动次数已领），仅 restoreGame 补发核对用 */
+let adTaskCompleted = false;  /* v5.14.1：平台任务状态快照（completed=本周期已完成，非单次完播凭证），v5.18 起仅作旧标记无基线时的补发 fallback */
+let adChanceCount = null, adStateOk = false;  /* v5.18：平台服务端次数余额快照——完播由服务端自动记账、跨重载不丢，补发核对主信号 */
 let tianmingBoost = false;
 let rewindSnapshot = null, rewindChapterUsed = 0, rewindAvailable = false;
 function vataskReady() {
@@ -2602,9 +2614,10 @@ async function playRewardAd(kind, snap) {
   /* v5.14.1：不预锁——以 SDK 返回为准，仅平台以 reason=UNAVAILABLE 明拒才置 adRewardDone 锁按钮 */
   if (adBusy || !vataskReady()) return false;
   flushDeferredSaves();  /* v5.17：拉起广告前先刷盘延迟中的存档/收藏 */
+  await refreshAdState();  /* v5.18：记下看广告前的服务端次数余额，作 PENDING 核对基线 */
   /* 拉起广告前先落盘＋留 PENDING 标记，防容器重载丢奖励 */
-  /* PENDING 标记记待发奖励类型，重载后由 restoreGame 凭平台状态核对补发 */
-  try { localStorage.setItem(PENDING_AD_KEY, JSON.stringify({ type: kind || '', ts: Date.now(), snap: snap || null })); } catch (e) {}
+  /* PENDING 标记记待发奖励类型与余额基线，重载后由 restoreGame 凭平台余额差量核对补发 */
+  try { localStorage.setItem(PENDING_AD_KEY, JSON.stringify({ type: kind || '', ts: Date.now(), snap: snap || null, base: adChanceCount })); } catch (e) {}
   saveGame(window.__curScreen === 'chapter' ? 'chapter' : 'draft');
   adBusy = true; lastAdMsg = ''; syncAllAdBtns();
   let ok = false;
@@ -2664,11 +2677,14 @@ async function refreshAdState() {
     if (st && st.code === 200 && st.data) {
       const task = (st.data.tasks || []).find(x => x.taskCode === 'reward');
       adTaskCompleted = !!(task && task.status === 'completed');  /* 仅供 restoreGame 补发核对，不再据此预锁广告按钮（v5.14.1） */
+      adChanceCount = (typeof st.data.availableChanceCount === 'number') ? st.data.availableChanceCount : null;  /* v5.18：服务端次数余额 */
+      adStateOk = true;
       window.__adVisible = true;
     } else {
+      adStateOk = false;
       window.__adVisible = false;
     }
-  } catch (e) { window.__adVisible = false; }
+  } catch (e) { adStateOk = false; window.__adVisible = false; }
   syncAllAdBtns();
 }
 $('btn-ad-swap').onclick = async () => {
