@@ -379,6 +379,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
       <div id="draft-stage"></div>
       <div class="draft-foot">
         <button class="btn-ghost" id="btn-swap">🔀 换一批（剩 3 次）</button>
+        <button class="btn-ghost hidden" id="btn-ad-swap">📺 看广告换一批（不限次）</button>
         <button class="btn-ghost hidden" id="btn-ad-directed">📺 定向招募（看广告，自选势力）</button>
         <button class="btn-ghost hidden" id="btn-directed-use">🎯 定向招募已就绪（点此选势力）</button>
         <button class="btn-ghost hidden" id="btn-ad-tianming">📺 天命临身（看广告，本批贵人云集）</button>
@@ -407,6 +408,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
     <div class="hero-note hidden" id="ch-fate" style="margin:0 4px 10px;"></div>
     <div class="card">
       <div id="ch-art" class="ch-art hidden"></div>
+      <div id="ch-bonds" class="bond-strip" style="display:none;"></div>
       <div class="ch-head"><span id="ch-num"></span><h2 id="ch-name"></h2></div>
       <p class="ch-brief" id="ch-brief"></p>
       <button class="btn-ghost hidden" id="btn-gamble" style="width:100%; margin-bottom:10px;"></button>
@@ -1248,7 +1250,7 @@ const S = {
   route: null, origin: null,
   attrs: {}, lockedFrom: {}, claimed: new Set(), swapsLeft: 3, picks: 0,
   faction: null, person: null, poolAttrs: {}, batch: [], peaked: {},  /* v5.14：本局已唤醒巅峰的人物 { name: true } */
-  baseAttrs: {}, bonds: {}, bondFx: 0, foeMarks: [], befriended: {}, chaseUsed: 0, bondChase: null, bondFreeRewind: 0, bondTempNext: false, bondNotes: [], bondLinkUsed: false, bondRewindAvail: false,  /* v5.24 羁绊：锁定原值快照/已触发/净加成账/宿敌记账/化敌状态/追羁绊/免费改命/临时骑手/触发记录/轻联动/免费改命可用 */
+  baseAttrs: {}, bonds: {}, bondFx: 0, foeMarks: [], befriended: {}, chaseUsed: 0, bondChase: null, bondFreeRewind: 0, bondTempNext: false, bondNotes: [], bondLinkUsed: false, bondRewindAvail: false, usedDirectedThisRun: false, radarNext: false,  /* v5.24 羁绊：锁定原值快照/已触发/净加成账/宿敌记账/化敌状态/追羁绊/免费改命/临时骑手/触发记录/轻联动/免费改命可用 */
   ovr: 0, deBuPei: 0, title: '', startFaction: '',
   ch: 0, health: 100, troops: 0,
   sec: { fame:0, network:0, loyalty:0, ambition:0, controversy:0 },
@@ -1306,6 +1308,9 @@ function syncSetupBtn() { $('btn-to-draft').disabled = !(S.route && S.origin); }
 /* ---------- 夺技 ---------- */
 function factionExhausted(f) { return f.people.every(p => S.claimed.has(f.name + '-' + p.name)); }
 function rollFaction() {
+  /* v5.25 羁绊雷达：标记在下一次生成候选批时必被消费（命中与否都消费）；命中时切到缺卡所在势力并强制塞入（见下方分支） */
+  const radarArmed = !!S.radarNext;
+  if (radarArmed) S.radarNext = false;
   /* v5.24 追羁绊：待追搭档强制进下一批——切到搭档所在势力，搭档占一个名额 */
   if (S.bondChase) {
     const target = S.bondChase; S.bondChase = null;
@@ -1320,6 +1325,24 @@ function rollFaction() {
       }
       S.batch.forEach(p => { S.poolAttrs[p.name] = genPlayerAttr(p.route, effTier(p), p.special, p.name); });
       return;
+    }
+  }
+  if (radarArmed && rngNext() < RADAR_RATE) {
+    const targets = radarTargets();
+    if (targets.length) {
+      const target = pick(targets);
+      const tf = FACTIONS.find(x => x.people.some(pp => pp.name === target && !S.claimed.has(x.name + '-' + pp.name)));
+      if (tf) {
+        S.faction = tf; S.person = null; S.poolAttrs = {};
+        const unc = tf.people.filter(pp => !S.claimed.has(tf.name + '-' + pp.name));
+        S.batch = drawBatch(unc, tianmingBoost); tianmingBoost = false;
+        if (!S.batch.some(pp => pp.name === target)) {
+          const tp = unc.find(pp => pp.name === target);
+          if (tp) { if (S.batch.length >= 5) S.batch[S.batch.length - 1] = tp; else S.batch.push(tp); }
+        }
+        S.batch.forEach(pp => { S.poolAttrs[pp.name] = genPlayerAttr(pp.route, effTier(pp), pp.special, pp.name); });
+        return;
+      }
     }
   }
   const avail = FACTIONS.filter(f => !factionExhausted(f));
@@ -1355,6 +1378,7 @@ function rollFactionDirected(fname) {
   return true;
 }
 function openDirectedPicker() {
+  if (S.usedDirectedThisRun) { adToast('定向招募本局已用（每局 1 次）'); return; }  /* v5.25：定向招募整局限成功执行 1 次 */
   const list = $('directed-list');
   if (!list) return;
   const avail = FACTIONS.filter(f => !factionExhausted(f));
@@ -1366,6 +1390,7 @@ function openDirectedPicker() {
   list.querySelectorAll('[data-directed-faction]').forEach(b => b.onclick = () => {
     if (rollFactionDirected(b.dataset.directedFaction)) {
       directedReady = false;
+      S.usedDirectedThisRun = true;  /* v5.25：定向招募成功执行即计数（整局最多 1 次） */
       $('directed-modal').classList.add('hidden');
       saveGame('draft');
       renderDraft();
@@ -1429,6 +1454,7 @@ function startDraft() {
   if (S.dailyMod && S.dailyMod.swapsDelta) S.swapsLeft = Math.max(0, S.swapsLeft + S.dailyMod.swapsDelta);  /* v5.19 词缀：一将难求/礼贤下士 */
   S.peaked = {};  /* v5.14：新局重置巅峰唤醒记录 */
   S.baseAttrs = {}; S.bonds = {}; S.bondFx = 0; S.foeMarks = []; S.befriended = {}; S.chaseUsed = 0; S.bondChase = null; S.bondFreeRewind = 0; S.bondTempNext = false; S.bondNotes = []; S.bondLinkUsed = false; S.bondRewindAvail = false; S.__unveilBase = null;  /* v5.24 羁绊状态重置 */
+  S.usedDirectedThisRun = false; S.radarNext = false;  /* v5.25 定向局内限次（每局 1 次）/羁绊雷达标记重置 */
   directedReady = false;  /* 定向招募资格不跨局 */ try { const __wm = loadMerit(); if (__wm.welfareDirected) { __wm.welfareDirected = false; saveMerit(__wm); directedReady = true; } } catch (e) {} /* 群福利：待用定向资格在本局生效 */
   rollFaction();
   showScreen('draft');
@@ -1588,6 +1614,7 @@ function lockAttr(key) {
    铁律：羁绊永远只从 S.baseAttrs（锁定原值快照）重算，禁止在 S.attrs 上叠加；结算顺序＝宿敌→补强→全队型。 */
 const BOND_CLS = { FULL: { ref: 90, cap: 15 }, LITE: { ref: 86, cap: 10 }, BASE: { ref: -1, cap: 0 } };
 const BOND_PAIR_CAP = 22, BOND_TEAM_CAP = 12, BOND_CHASE_MAX = 2, BOND_FOE_RATE = 0.2, BOND_FOE_CAP = 12, BOND_BEFRIEND_PLUS = 4;
+const RADAR_RATE = 0.65;  /* v5.25 羁绊雷达：看广告后下一批以此概率强制塞入未凑齐羁绊的缺卡 */
 const BONDS = [
   { id: 'taoyuan',   a: '刘备',   b: '关羽',   name: '桃园之义',   cls: 'LITE', type: 'fill',  desc: '桃园结义，义字当头。' },
   { id: 'jiangdong', a: '孙策',   b: '周瑜',   name: '江东双璧',   cls: 'BASE', type: 'fill',  desc: '江东双璧，并世无双。' },
@@ -1702,8 +1729,24 @@ function renderDraftBonds() {
     const missing = bondMembersOf(B).filter(n => bondSlotOf(n) === null);
     chips.push(`<span class="bond-chip">💞 凑羁绊中：《${B.name}》${locked.length}/${bondNeedOf(B)}（待：${missing.join('、')}）</span>`);
   }
+  if (S.radarNext) chips.push('<span class="bond-chip fx">📡 羁绊雷达已开启：下批大概率出缺卡</span>');
   if (S.bondTempNext) chips.push('<span class="bond-chip fx">🌟 《隆中对》余势：下一场判定 +3</span>');
   if ((S.bondFreeRewind || 0) > 0) chips.push(`<span class="bond-chip fx">💞 《冤家路窄》免费改命 ×${S.bondFreeRewind} 待用（章节判定失败后可用）</span>`);
+  el.innerHTML = chips.join('');
+  el.style.display = chips.length ? '' : 'none';
+}
+function renderChapterBonds() {
+  /* v5.25：章节页顶部羁绊横幅（与夺技页 #draft-bonds 同款 chip）：已触发羁绊＋仍生效效果提示；无已触发羁绊整条隐藏 */
+  const el = $('ch-bonds');
+  if (!el) return;
+  const chips = [];
+  for (const B of BONDS) if (S.bonds && S.bonds[B.id]) chips.push(`<span class="bond-chip on">💞 《${B.name}》✓ 已触发</span>`);
+  if (chips.length) {
+    const temp = BONDS.find(b => b.type === 'temp');
+    if (S.bondTempNext && temp && S.bonds[temp.id]) chips.push(`<span class="bond-chip fx">🌟 《${temp.name}》余势待生效：下一场判定 +${BOND_TEMP_RATE}</span>`);
+    for (const B of BONDS) if (B.type === 'foe' && S.bonds[B.id] && !(S.befriended && S.befriended[B.id])) chips.push(`<span class="bond-chip fx">💔 《${B.name}》宿敌未解</span>`);
+    if ((S.bondFreeRewind || 0) > 0) chips.push(`<span class="bond-chip fx">💞 免费改命 ×${S.bondFreeRewind} 待用（判定失败后可用）</span>`);
+  }
   el.innerHTML = chips.join('');
   el.style.display = chips.length ? '' : 'none';
 }
@@ -1715,6 +1758,23 @@ function bondUnveilLine() {
   return s;
 }
 /* ---------- 广告追羁绊 / 化敌为友（发奖走既有 playRewardAd v5.22 口径，不另起一套） ---------- */
+function personUnclaimed(name) {
+  return FACTIONS.some(f => f.people.some(pp => pp.name === name && !S.claimed.has(f.name + '-' + pp.name)));
+}
+function radarTargets() {
+  /* v5.25 羁绊雷达目标：未触发羁绊中「已锁至少一员、尚缺至少一员」的缺失成员（须未被夺走） */
+  if (S.picks >= 12) return [];
+  const out = [];
+  for (const B of BONDS) {
+    if (S.bonds && S.bonds[B.id]) continue;
+    const ms = bondMembersOf(B);
+    const locked = ms.filter(n => bondSlotOf(n) !== null);
+    const missing = ms.filter(n => bondSlotOf(n) === null);
+    if (!locked.length || !missing.length) continue;
+    for (const n of missing) if (personUnclaimed(n) && !out.includes(n)) out.push(n);
+  }
+  return out;
+}
 function bondChaseTargets() {
   if ((S.chaseUsed || 0) >= BOND_CHASE_MAX || S.picks >= 12) return [];
   const out = [];
@@ -1750,6 +1810,8 @@ function renderBondBarInto(el, unveil) {
   if (vis) {
     if (!unveil && !S.person && S.picks < 12) {
       for (const name of bondChaseTargets()) h += `<button class="btn-ghost" data-chase="${name}" ${adBusy || adRewardDone ? 'disabled' : ''}>${adBusy ? '📺 广告播放中…' : `📺 追羁绊：下批必出 ${name}（剩 ${BOND_CHASE_MAX - (S.chaseUsed || 0)} 次）`}</button>`;
+      if (S.radarNext) h += `<button class="btn-ghost" disabled>📡 羁绊雷达已开启（下批大概率出缺卡）</button>`;
+      else if (radarTargets().length) h += `<button class="btn-ghost" data-radar="1" ${adBusy || adRewardDone ? 'disabled' : ''}>${adBusy ? '📺 广告播放中…' : '📺 羁绊雷达：下批大概率出缺的羁绊搭档'}</button>`;
     }
     for (const B of BONDS) {
       if (B.type !== 'foe' || !(S.bonds && S.bonds[B.id]) || (S.befriended && S.befriended[B.id])) continue;
@@ -1758,6 +1820,7 @@ function renderBondBarInto(el, unveil) {
   }
   el.innerHTML = h;
   el.querySelectorAll('[data-chase]').forEach(b => b.onclick = () => onBondChase(b.dataset.chase));
+  el.querySelectorAll('[data-radar]').forEach(b => b.onclick = () => onBondRadar());
   el.querySelectorAll('[data-befriend]').forEach(b => b.onclick = () => onBondBefriend(b.dataset.befriend));
 }
 async function onBondChase(name) {
@@ -1766,6 +1829,16 @@ async function onBondChase(name) {
     grantBondChase(name);
     renderDraft();
     adToast('追羁绊——' + name + ' 已在本批候选之中');
+  } else if (lastAdMsg) { renderDraft(); adToast(lastAdMsg); }
+}
+async function onBondRadar() {
+  /* v5.25 羁绊雷达：与追羁绊并存、互不占用次数；每局不限次，同时最多挂 1 个未消费标记 */
+  if (adBusy || adRewardDone || S.person || S.radarNext || S.picks >= 12) return;
+  if (await playRewardAd('radar')) {
+    S.radarNext = true;
+    saveGame('draft');
+    renderDraft();
+    adToast('羁绊雷达已开启——下一批大概率出现缺的羁绊搭档');
   } else if (lastAdMsg) { renderDraft(); adToast(lastAdMsg); }
 }
 async function onBondBefriend(id) {
@@ -2215,6 +2288,7 @@ function enterChapter(n) {
 /* 选项渲染独立成函数：赌一把开关只重渲染选项，不重复扣章首健康 */
 function gambleRate(rate) { return Math.max(5, Math.floor(rate / 2)); }
 function renderChapterOptions(ch) {
+  renderChapterBonds();  /* v5.25 章节页顶部羁绊横幅 */
   syncAllAdBtns();
   const gBtn = $('btn-gamble');
   const hasCheck = ch.options.some(o => o.check);
@@ -2349,6 +2423,7 @@ function chooseChapterOption(opt) {
 function renderSettle(animate) {
   const ls = S.lastSettle;
   if (!ls || ls.kind !== 'chapter') return;
+  renderChapterBonds();  /* v5.25 章节页顶部羁绊横幅 */
   const ch = curChapter();
   $('ch-options').classList.add('hidden');
   const res = $('ch-result');
@@ -3197,6 +3272,11 @@ $('btn-archive-drop').onclick = () => {
 $('btn-start').onclick = () => { __pendingRun = { mode: 'normal', seed: (Math.random() * 4294967296) >>> 0 }; renderSetup(); showScreen('setup'); };  /* v5.19：普通局也种子化，战报可复现同款 */
 $('btn-to-draft').onclick = startDraft;
 $('btn-swap').onclick = () => { if (S.swapsLeft > 0 && !S.person) { S.swapsLeft--; rollFaction(); renderDraft(); } };
+$('btn-ad-swap').onclick = async () => {
+  if (adBusy || adRewardDone || S.person || (S.swapsLeft || 0) > 0) return;
+  if (await playRewardAd('swap')) { rollFaction(); renderDraft(); adToast('换一批——新一批候选已到'); }
+  else if (lastAdMsg) { renderDraft(); adToast(lastAdMsg); }
+};
 /* ---------- 激励广告（vatask）：定向招募 / 天命 / 锦囊 / 改命 / 巅峰，共用一套状态 ---------- */
 /* ---------- 本地存档（v5.5）：看广告/误退导致页面重载时恢复进度 ---------- */
 const SAVE_KEY = 'luanshi_save_v1', PENDING_AD_KEY = 'luanshi_pending_ad', PENDING_BG_KEY = 'luanshi_pending_ad_bg';
@@ -3351,6 +3431,9 @@ function applyPendingAdGrant(p, toChapter) {
   if (!toChapter && p.type === 'swap') {
     S.swapsLeft++;
     grantedMsg = '广告奖励已补发：换一批 +1 次';
+  } else if (!toChapter && p.type === 'radar') {
+    S.radarNext = true;
+    grantedMsg = '广告奖励已补发：羁绊雷达已开启——下批大概率出缺的羁绊搭档';
   } else if (!toChapter && p.type === 'directed') {
     directedReady = true;
     grantedMsg = '广告奖励已补发：定向招募已就绪——去夺技页自选势力';
@@ -3413,6 +3496,8 @@ async function restoreGame() {
   S.bondTempNext = !!__os.bondTempNext;
   S.bondNotes = Array.isArray(__os.bondNotes) ? __os.bondNotes : [];
   S.bondLinkUsed = !!__os.bondLinkUsed;
+  S.usedDirectedThisRun = !!__os.usedDirectedThisRun;  /* v5.25：旧档无此字段时为未用 */
+  S.radarNext = !!__os.radarNext;  /* v5.25 */
   if (S.__unveilBase === undefined) S.__unveilBase = null;
   S.bondRewindAvail = !!__os.bondRewindAvail && (S.bondFreeRewind || 0) > 0 && !!rewindSnapshot && rewindChapterUsed !== S.ch;
   /* 读 PENDING 待发奖励标记（旧版无 type 标记自然降级为仅恢复进度） */
@@ -4008,12 +4093,23 @@ async function playRewardAd(kind, snap) {
 }
 function syncAllAdBtns() {
   const vis = !!window.__adVisible;
+  const dUsed = !!S.usedDirectedThisRun;  /* v5.25：定向招募整局最多成功执行 1 次，已用后入口置灰注明 */
   const dr = $('btn-ad-directed');
   dr.classList.toggle('hidden', !vis);
-  dr.disabled = adBusy || adRewardDone || !!S.person || directedReady;
-  dr.textContent = adRewardDone ? '📺 广告奖励已领完' : (adBusy ? '📺 广告播放中…' : (directedReady ? '📺 定向招募已就绪（先选势力）' : '📺 定向招募（看广告，自选势力）'));
+  dr.disabled = adBusy || adRewardDone || !!S.person || directedReady || dUsed;
+  dr.textContent = dUsed ? '📺 定向招募（本局已用）' : (adRewardDone ? '📺 广告奖励已领完' : (adBusy ? '📺 广告播放中…' : (directedReady ? '📺 定向招募已就绪（先选势力）' : '📺 定向招募（看广告，自选势力）')));
   const du = $('btn-directed-use');
-  if (du) { du.classList.toggle('hidden', !(directedReady && !S.person)); du.disabled = adBusy; }
+  if (du) {
+    du.classList.toggle('hidden', !((directedReady || dUsed) && !S.person));
+    du.disabled = adBusy || dUsed;
+    du.textContent = dUsed ? '🎯 定向招募（本局已用）' : '🎯 定向招募已就绪（点此选势力）';
+  }
+  const asw = $('btn-ad-swap');
+  if (asw) {  /* v5.25：免费换一批（3 次）耗尽后，看广告换一批不限次数 */
+    asw.classList.toggle('hidden', !(vis && !S.person && (S.swapsLeft || 0) <= 0));
+    asw.disabled = adBusy || adRewardDone;
+    asw.textContent = adRewardDone ? '📺 广告奖励已领完' : (adBusy ? '📺 广告播放中…' : '📺 看广告换一批（不限次）');
+  }
   const tm = $('btn-ad-tianming');
   tm.classList.toggle('hidden', !vis);
   tm.disabled = adBusy || adRewardDone || !!S.person;
@@ -4070,7 +4166,7 @@ async function refreshAdState() {
   syncAllAdBtns();
 }
 $('btn-ad-directed').onclick = async () => {
-  if (adBusy || adRewardDone || S.person || directedReady) return;
+  if (adBusy || adRewardDone || S.person || directedReady || S.usedDirectedThisRun) return;
   if (await playRewardAd('directed')) {
     directedReady = true;
     saveGame('draft');
@@ -4078,7 +4174,7 @@ $('btn-ad-directed').onclick = async () => {
     openDirectedPicker();
   } else if (lastAdMsg) adToast(lastAdMsg);
 };
-$('btn-directed-use').onclick = () => { if (directedReady && !S.person) openDirectedPicker(); };
+$('btn-directed-use').onclick = () => { if (S.usedDirectedThisRun) { adToast('定向招募本局已用（每局 1 次）'); return; } if (directedReady && !S.person) openDirectedPicker(); };
 $('btn-ad-tianming').onclick = async () => {
   if (adBusy || adRewardDone || S.person) return;
   if (await playRewardAd('tianming')) {
