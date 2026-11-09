@@ -412,7 +412,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
       <div id="ch-bonds" class="bond-strip" style="display:none;"></div>
       <div class="ch-head"><span id="ch-num"></span><h2 id="ch-name"></h2></div>
       <p class="ch-brief" id="ch-brief"></p>
-      <button class="btn-ghost hidden" id="btn-gamble" style="width:100%; margin-bottom:10px;"></button>
+      <button class="btn-ghost hidden" id="btn-wager" style="width:100%; margin-bottom:10px;"></button>
       <button class="btn-ghost hidden" id="btn-ad-jinnang" style="width:100%; margin-bottom:10px;">📺 看广告·请锦囊（判定更稳）</button>
       <div class="copied hidden" id="ch-ad-toast"></div>
       <div id="ch-options" class="opt-list"></div>
@@ -1105,7 +1105,9 @@ const EVENTS = [
         lose:{ effects:{ health:-8, fame:-1 }, result:'你输得不难看。但全场都看出来了。' } },
       { label:'B', text:'坦然认怂', effects:{ fame:-1, controversy:-1 }, result:'你说：我就是个拼凑的。满座大笑，剑收回去了。' }
     ] },
-  { id:'E3', title:'军中无粮', weight:50,
+  { id:'E3', title:'军中无粮', weight:50, bondRewrite:{ bond:'taoyuan', weakType:'safe-low', strongType:'branch',
+      weak:{ text:'结义兄弟带头分粮', effects:{ loyalty:1 }, result:'刘备、关羽把自己的口粮先匀给了伤兵。营里没人说话，可看过来的眼神变了。' },
+      strong:{ text:'桃园誓众，共度粮荒', effects:{ loyalty:3, troops:-100 }, result:'刘备当众立誓：有我一口，就有全军一口。粮还是那些粮，人心却撑住了——代价是牵了驮马充数。' } },
     story:'粮道断了七天，营里开始杀马。',
     focus:'马杀完，下一步是什么大家都清楚。',
     options:[
@@ -1113,7 +1115,9 @@ const EVENTS = [
       { label:'B', text:'向百姓征粮', effects:{ troops:150, controversy:2, fame:-1 }, result:'粮有了。征粮队回来时，没人敢看百姓的眼睛。' },
       { label:'C', text:'减半口粮硬撑', effects:{ health:-6, loyalty:1 }, result:'你把自己的饭分了三天。兵们看你的眼神变了。' }
     ] },
-  { id:'E4', title:'白衣渡江', weight:50,
+  { id:'E4', title:'白衣渡江', weight:50, bondRewrite:{ bond:'yingxiong', weakType:'risk-up', strongType:'branch',
+      weak:{ text:'托关羽旧谊探使者口风', check:'insight', win:{ effects:{ fame:1 }, result:'使者看在关羽面上松了口风：名单是真，盟也是真，就看你防不防得住。' }, lose:{ effects:{ loyalty:-1 }, result:'使者不吃这一套，拂袖而去，盟事悬在了半空。' } },
+      strong:{ text:'关羽亲自验盟书', check:'insight', win:{ effects:{ network:1, flag:'seenThrough' }, result:'关羽只扫一眼便道：印是真的，名单也是真的——对方是在借刀杀人。你连夜换防，反设一局。' }, lose:{ effects:{ loyalty:-2 }, result:'连关羽都看走了眼。盟书作废，两家就此生了心结。' } } },
     story:'盟友派来使者，锦盒里是盟书，盒底压着一张你方将领的名单。',
     focus:'信，还是防？',
     options:[
@@ -1122,7 +1126,9 @@ const EVENTS = [
         lose:{ effects:{ loyalty:-2 }, result:'冤枉了人。盟书作废，两家从此有了心结。' } },
       { label:'B', text:'照单全收', effects:{ network:1, flag:'betrayed' }, result:'你签了盟书，夸对方字写得好。' }
     ] },
-  { id:'E5', title:'空城', weight:50,
+  { id:'E5', title:'空城', weight:50, bondRewrite:{ bond:'longzhong', weakType:'risk-up', strongType:'branch',
+      weak:{ text:'借军师之名布疑阵', check:'nerve', win:{ effects:{ fame:2 }, result:'疑阵布下，对方前锋迟疑不前，在城下站了半个时辰，终是退了。' }, lose:{ effects:{ health:-6, troops:-150 }, result:'疑阵被识破，对方抢攻一阵，你退守内城，折了些人马。' } },
+      strong:{ text:'军师坐镇，空城抚琴', check:'nerve', win:{ effects:{ fame:3, flag:'kongcheng' }, result:'诸葛亮亲自坐镇城头抚琴，对方主将疑有伏兵，整军而退。这一局，记在隆中对的账上。' }, lose:{ effects:{ health:-10, troops:-300 }, result:'对方没吃这一套。城破之际，军师拽着你自西门杀出。' } } },
     story:'主力未归，对方前锋已经到了城下，你手边只有三百老弱。',
     focus:'跑，城丢；赌，命悬。',
     options:[
@@ -1138,7 +1144,9 @@ const EVENTS = [
       { label:'A', text:'厚葬并抚恤其家', effects:{ loyalty:2, fame:1 }, result:'葬礼那天，全军缟素。之后你的人，打仗不退了。' },
       { label:'B', text:'简办，军情紧急', effects:{ troops:50 }, result:'你说了句『等打完再说』。这句话你记了很多年。' }
     ] },
-  { id:'E7', title:'天子诏书', weight:50,
+  { id:'E7', title:'天子诏书', weight:50, bondRewrite:{ bond:'caowei', weakType:'safe-low', strongType:'branch',
+      weak:{ text:'请曹魏双谋议诏', effects:{ fame:1 }, result:'郭嘉、荀彧议了一夜：诏可以接，兵可以不出。名分，先占下来再说。' },
+      strong:{ text:'荀彧持诏，郭嘉定计', effects:{ fame:2, loyalty:-1, flag:'imperial' }, result:'荀彧以王佐之名持诏安众，郭嘉暗里布下后手。诏书成了你手中的一张牌——只是盟友那头，从此多了个心结。' } },
     story:'一道诏书到了，内容是让你讨伐你现在的盟友。印是真的，意思也是真的。',
     focus:'奉诏是忠，烧诏是义，矫诏是胆。',
     options:[
@@ -1154,7 +1162,9 @@ const EVENTS = [
       { label:'B', text:'图封妻荫子', effects:{ ambition:1 }, result:'老兵笑了：『这话实在。』' },
       { label:'C', text:'图一个痛快', taunt:true, effects:{ fame:1 }, result:'老兵把酒囊递给你：『就冲这句，我跟你走到底。』' }
     ] },
-  { id:'E9', title:'马市奇遇', weight:50,
+  { id:'E9', title:'马市奇遇', weight:50, bondRewrite:{ bond:'wuhu', weakType:'risk-up', strongType:'branch',
+      weak:{ text:'让五虎的人去相马', check:'charisma', win:{ effects:{ perm:{ cavalry:1 }, troops:40 }, result:'识马的眼光毒得很：是匹好马。你牵着它回营，骑兵的脚力又添一分。' }, lose:{ effects:{ controversy:1 }, result:'看走了眼，马牵回营就闹脾气。军中笑话了三天。' } },
+      strong:{ text:'五虎齐至马市相马', check:'charisma', win:{ effects:{ perm:{ cavalry:2 }, troops:60 }, result:'五位虎将轮番试骑，马贩子看傻了眼——宝马只肯跟真正的骑将走。' }, lose:{ effects:{ controversy:1 }, result:'马是烈马，谁都没驯服。马贩子在背后笑出了声。' } } },
     story:'过集市时，一个马贩子拉住你，说他有一匹「日行八百」的宝马，只卖有缘人。',
     focus:'马贩子的话，信三成都是多的。',
     options:[
@@ -1164,7 +1174,9 @@ const EVENTS = [
       { label:'B', text:'讨价还价', effects:{ network:1 }, result:'没买成，倒跟马贩子混了个脸熟，往后军马有了门路。' },
       { label:'C', text:'这马我征用了', taunt:true, effects:{ controversy:2, troops:40 }, result:'马贩子敢怒不敢言。你骑着「征用马」回营，名声也跟着跑了一路。' }
     ] },
-  { id:'E10', title:'山洪断路', weight:50,
+  { id:'E10', title:'山洪断路', weight:50, bondRewrite:{ bond:'jiangdong', weakType:'risk-up', strongType:'branch',
+      weak:{ text:'双璧之一带队探水', check:'physique', win:{ effects:{ fame:1 }, result:'探水的人踩着绳索先过了岸，全军跟着绳子回了家。' }, lose:{ effects:{ health:-5, troops:-50 }, result:'水比想的急，探水队被冲散一半，捞上来时人人灌了个饱。' } },
+      strong:{ text:'江东双璧亲自泅渡', check:'physique', win:{ effects:{ fame:1, loyalty:1 }, result:'孙策、周瑜一前一后下水牵绳，全军无损过岸。这一夜，江东子弟兵的名头更响了。' }, lose:{ effects:{ health:-8, troops:-80 }, result:'连双璧都被山洪掀翻。捞人，一直忙到天亮。' } } },
     story:'夜里山洪暴发，归路被冲断，对岸就是大营，粮草只够一天。',
     focus:'等水退，还是赌一把？',
     options:[
@@ -1184,7 +1196,9 @@ const EVENTS = [
         win:{ effects:{ fame:1 }, result:'查清了，就是个郎中。你亲自把人送出营门，赔了不是。' },
         lose:{ effects:{ controversy:1 }, result:'扣了三天才放人。郎中是真郎中，你的心也是真多疑。' } }
     ] },
-  { id:'E12', title:'降将求见', weight:50,
+  { id:'E12', title:'降将求见', weight:50, bondRewrite:{ bond:'wolong', weakType:'risk-up', strongType:'branch',
+      weak:{ text:'让庞统先会一会降将', check:'insight', win:{ effects:{ troops:120 }, result:'庞统三言两语探出虚实：降是真降。内应，已经就位。' }, lose:{ effects:{ troops:-100 }, result:'庞统也栽了跟头——是诈降。伏兵冲帐，你折了一阵。' } },
+      strong:{ text:'卧龙凤雏联手审降', check:'insight', win:{ effects:{ troops:200, fame:1, flag:'fanjian' }, result:'两人一唱一和，降将把对方的布防都倒了出来。三日后，城门自里面打开。' }, lose:{ effects:{ troops:-150, health:-5 }, result:'诈降的局做得太真。伏兵杀出时，庞统替你挡了一箭。' } } },
     story:'半夜，敌营一名裨将缒城来降，说愿为内应，只求保住家中老小。',
     focus:'降将的话，是这世上最贵的东西，也是最贱的。',
     options:[
@@ -1251,14 +1265,14 @@ const S = {
   route: null, origin: null,
   attrs: {}, lockedFrom: {}, claimed: new Set(), swapsLeft: 3, picks: 0,
   faction: null, person: null, poolAttrs: {}, batch: [], peaked: {},  /* v5.14：本局已唤醒巅峰的人物 { name: true } */
-  baseAttrs: {}, bonds: {}, bondFx: 0, bondFxText: {}, foeMarks: [], befriended: {}, chaseUsed: 0, bondChase: null, bondFreeRewind: 0, bondTempNext: false, bondNotes: [], bondLinkUsed: false, bondRewindAvail: false, usedDirectedThisRun: false, radarNext: false,  /* v5.24 羁绊：锁定原值快照/已触发/净加成账/宿敌记账/化敌状态/追羁绊/免费改命/临时骑手/触发记录/轻联动/免费改命可用；bondFxText＝每对实际结算明细文案（只记账展示，渲染层读它） */
+  baseAttrs: {}, bonds: {}, bondFx: 0, bondFxText: {}, foeMarks: [], befriended: {}, chaseUsed: 0, bondChase: null, bondFreeRewind: 0, bondTempNext: false, bondNotes: [], bondLinkUsed: false, bondRewindAvail: false, usedDirectedThisRun: false, radarNext: false, gambleTokens: 1, gambleCh: 0, gambleArm: false, gambleEarnPaid: 0, tele: { wager:0, wagerWin:0, wagerFlip:0, eWeakShow:0, eWeakPick:0, eStrongShow:0, eStrongPick:0, bondEvent:0 },  /* v5.26 拼一把：拼令/频率闸章号/武装态/里程碑已发档/遥测（初值与 GAMBLE.startTokens 对齐，开局由 startDraft 按配置重置） */ /* v5.24 羁绊：锁定原值快照/已触发/净加成账/宿敌记账/化敌状态/追羁绊/免费改命/临时骑手/触发记录/轻联动/免费改命可用；bondFxText＝每对实际结算明细文案（只记账展示，渲染层读它） */
   ovr: 0, deBuPei: 0, title: '', startFaction: '',
   ch: 0, health: 100, troops: 0,
   sec: { fame:0, network:0, loyalty:0, ambition:0, controversy:0 },
   flags: [], taunts: 0, personalFail: 0, merit: 0, scenes: 0,
   bios: [], eventsUsed: [], eventsFired: 0,
   finalChoice: null, deadPending: false, endingId: null, score: 0,
-  gamble: false, selfStreak: 0, fate: null,
+  selfStreak: 0, fate: null,
   lastSettle: null, rewindSnap: null, rewindAvail: false, evDoneCh: null,  /* 判定落盘：本章结算记录/改命快照随档/改命可用标记/已结算事件所属章号 */
   mode: 'normal', runSeed: 0, scheme: null, dailyKey: '', dailyMod: null, dailyGoal: null  /* v5.19：局模式/种子/方略/每日词缀与目标 */
 };
@@ -1456,6 +1470,7 @@ function startDraft() {
   S.peaked = {};  /* v5.14：新局重置巅峰唤醒记录 */
   S.baseAttrs = {}; S.bonds = {}; S.bondFx = 0; S.bondFxText = {}; S.foeMarks = []; S.befriended = {}; S.chaseUsed = 0; S.bondChase = null; S.bondFreeRewind = 0; S.bondTempNext = false; S.bondNotes = []; S.bondLinkUsed = false; S.bondRewindAvail = false; S.__unveilBase = null;  /* v5.24 羁绊状态重置 */
   S.usedDirectedThisRun = false; S.radarNext = false;  /* v5.25 定向局内限次（每局 1 次）/羁绊雷达标记重置 */
+  S.gambleTokens = GAMBLE.startTokens; S.gambleCh = 0; S.gambleArm = false; S.gambleEarnPaid = 0; S.tele = { wager:0, wagerWin:0, wagerFlip:0, eWeakShow:0, eWeakPick:0, eStrongShow:0, eStrongPick:0, bondEvent:0 };  /* v5.26 拼一把状态重置（与羁绊字段同处） */
   directedReady = false;  /* 定向招募资格不跨局 */ try { const __wm = loadMerit(); if (__wm.welfareDirected) { __wm.welfareDirected = false; saveMerit(__wm); directedReady = true; } } catch (e) {} /* 群福利：待用定向资格在本局生效 */
   rollFaction();
   showScreen('draft');
@@ -1616,6 +1631,32 @@ function lockAttr(key) {
 const BOND_CLS = { FULL: { ref: 90, cap: 15 }, LITE: { ref: 86, cap: 10 }, BASE: { ref: -1, cap: 0 } };
 const BOND_PAIR_CAP = 22, BOND_TEAM_CAP = 12, BOND_CHASE_MAX = 2, BOND_FOE_RATE = 0.2, BOND_FOE_CAP = 12, BOND_BEFRIEND_PLUS = 4;
 const RADAR_RATE = 0.65;  /* v5.25 羁绊雷达：看广告后下一批以此概率强制塞入未凑齐羁绊的缺卡 */
+/* ---------- 拼一把（v5.26 羁绊扩展 A，定案口径）：拼令即赌注本体——下注即扣、押赢才回补；
+   结算走双掷模型（roll1 成功后再掷 roll2、同 rate，roll2 败翻转为败），净胜率＝p²，额外功名 R 按净胜率定价：
+   R＝round(clamp((1−p²)/p², clampMin, clampMax)×B×rewardK)，B＝胜档功业点（TIER_POINTS）；
+   奖励只走 creditMerit 功名钱包，白名单外（属性/成功率/补强/定向/改命/可换属性货币）一律不发；
+   前端只给把握三档（按 p² 取档）＋拼赢 +X，p 与赔率永不外露（仅约束 A 组件，见定案 C2 口径） ---------- */
+const GAMBLE = { startTokens:1, tokenCap:3, perChapter:1, requireBond:true, earnChapterEvery:5, earnOnBondTrigger:true, rewardK:1.0, clampMin:0.25, clampMax:1.5, feelTiers:[0.7,0.45], tokenRefundOnWin:1, rateBonus:8, earnAchIds:['gambleWin','scenes3'] };
+function grantWagerTokens(n) {  /* 拼令发放单一入口：统一钳上限，返回实际发放数 */
+  if (!n || n <= 0 || typeof S.gambleTokens !== 'number') return 0;
+  const add = Math.min(GAMBLE.tokenCap - S.gambleTokens, n);
+  if (add > 0) S.gambleTokens += add;
+  return add;
+}
+function wagerCoef(rate) { const p = rate / 100, p2 = p * p; return clamp((1 - p2) / p2, GAMBLE.clampMin, GAMBLE.clampMax); }
+function wagerReward(rate, B) { if (!B || B <= 0) return 0; return Math.round(wagerCoef(rate) * B * GAMBLE.rewardK); }
+function wagerFeel(rate) { const p = rate / 100, p2 = p * p; return p2 >= GAMBLE.feelTiers[0] ? '稳' : (p2 >= GAMBLE.feelTiers[1] ? '较稳' : '险'); }
+function wagerAvailable() { return S.gambleTokens > 0 && S.gambleCh !== S.ch && (!GAMBLE.requireBond || Object.keys(S.bonds || {}).length > 0); }
+function grantChapterMilestoneTokens() {  /* 挣令·章节里程碑：每通关 5 章 +1，gambleEarnPaid 记账防恢复重发 */
+  const marks = Math.floor((S.ch || 0) / GAMBLE.earnChapterEvery);
+  if (marks > (S.gambleEarnPaid || 0)) { grantWagerTokens(marks - S.gambleEarnPaid); S.gambleEarnPaid = marks; }
+}
+function chapterRatePreview(checkKey) {  /* 与 chooseChapterOption 结算同口径的最终成功率预演（锦囊/隆中余势），只供 A 组件把握档与拼赢预览 */
+  let rate = successRate(checkKey);
+  if (S.jinnang) rate = clamp(rate + 12, 10, 95);
+  if (S.bondTempNext) rate = clamp(rate + BOND_TEMP_RATE, 10, 95);
+  return rate;
+}
 const BONDS = [
   { id: 'taoyuan',   a: '刘备',   b: '关羽',   name: '桃园之义',   cls: 'LITE', type: 'fill',  desc: '桃园结义，义字当头。' },
   { id: 'jiangdong', a: '孙策',   b: '周瑜',   name: '江东双璧',   cls: 'BASE', type: 'fill',  desc: '江东双璧，并世无双。' },
@@ -1706,6 +1747,7 @@ function recomputeBonds() {
   if (newly.length) {
     try { const c = loadCollection(); let dirty = false; for (const B of newly) if (!c.bondsSeen[B.id]) { c.bondsSeen[B.id] = Date.now(); dirty = true; } if (dirty) saveCollection(c); } catch (e) {}
     for (const B of newly) S.bondNotes.push(B.id);
+    if (GAMBLE.earnOnBondTrigger) grantWagerTokens(newly.length);  /* v5.26 拼一把挣令·羁绊源：每对首次触发 +1（recomputeBonds 单一入口发放；化敌/恢复重算时 newly 为空，不重发） */
   }
   return newly;
 }
@@ -2049,21 +2091,6 @@ function effectSummary(eff) {
   return parts.length ? parts.join('·') : '无得失';
 }
 
-/* 效果缩放（赌一把：数值翻倍；招募类先按当前魅力折算为数值再翻倍，标记不翻倍） */
-function scaleEffects(eff, mult) {
-  if (!eff) return eff;
-  const out = {};
-  for (const k of Object.keys(eff)) {
-    const v = eff[k];
-    if (k === 'troops' && v === 'recruit') out[k] = round10(S.attrs.charisma * 10) * mult;
-    else if (k === 'troops' && v === 'recruit60') out[k] = round10(S.attrs.charisma * 10 * 0.6) * mult;
-    else if (k === 'perm') { out[k] = {}; for (const pk of Object.keys(v)) out[k][pk] = v[pk] * mult; }
-    else if (typeof v === 'number') out[k] = v * mult;
-    else out[k] = v;
-  }
-  return out;
-}
-
 /* 自保连罚（正式规则）：连续选「自保」逐级加重，按连选次数查表；
  * 连选满 10 次累计：声望 -16 · 兵马 -1150 · 争议 +7 */
 const SELF_PENALTY = [
@@ -2215,7 +2242,7 @@ CHAPTERS.forEach((ch, i) => { const a = CHAPTER_ALTS[i + 1]; if (a) ch.alt = a; 
 /* ---------- 章节引擎（任务书 §4.2） ---------- */
 function startChapters() {
   S.ch = 0; S.flags = []; S.taunts = 0; S.personalFail = 0; S.merit = 0; S.scenes = 0;
-  S.gamble = false; S.selfStreak = 0;
+  S.gambleArm = false; S.selfStreak = 0;
   S.bios = []; S.eventsUsed = []; S.eventsFired = 0; S.finalChoice = null; S.deadPending = false;
   S.jinnang = false; S.rewindLeft = 2;
   S.lastSettle = null; S.rewindSnap = null; S.rewindAvail = false; S.evDoneCh = null;
@@ -2267,7 +2294,7 @@ function curChapterOf(n) {
 function curChapter() { return curChapterOf(S.ch); }
 function enterChapter(n) {
   S.ch = n;
-  S.gamble = false;
+  S.gambleArm = false;  /* v5.26：武装态不跨章保留 */
   S.lastSettle = null;  /* 判定落盘：新章首清除上章结算记录（随本章章首存档一并覆写） */
   const ch = curChapterOf(n);
   let note = '';
@@ -2311,19 +2338,22 @@ function enterChapter(n) {
   refreshChapterUI();
   saveGame('chapter');  /* v5.5 存档点：章首状态（健康已结算）落盘，恢复时不再重复扣减 */
 }
-/* 选项渲染独立成函数：赌一把开关只重渲染选项，不重复扣章首健康 */
-function gambleRate(rate) { return Math.max(5, Math.floor(rate / 2)); }
+/* 选项渲染独立成函数：拼一把武装开关只重渲染选项，不重复扣章首健康 */
 function renderChapterOptions(ch) {
   renderChapterBonds();  /* v5.25 章节页顶部羁绊横幅 */
   syncAllAdBtns();
-  const gBtn = $('btn-gamble');
+  const blind = !!(S.dailyMod && S.dailyMod.blind);  /* v5.26：blind 词缀局隐藏 A 入口（把握档会泄露词缀要藏的成功率信息） */
+  const wBtn = $('btn-wager');
   const hasCheck = ch.options.some(o => o.check);
-  gBtn.classList.toggle('hidden', !hasCheck);
-  gBtn.classList.toggle('on', S.gamble);
-  gBtn.textContent = S.gamble
-    ? '🎲 赌一把：开（成功率减半 · 收益与功业翻倍 · 失败代价加倍）'
-    : '🎲 赌一把：关（点此开启，搏一把）';
-  gBtn.onclick = () => { S.gamble = !S.gamble; renderChapterOptions(ch); };
+  const canArm = hasCheck && !blind && wagerAvailable();
+  wBtn.classList.toggle('hidden', !hasCheck || blind);
+  wBtn.classList.toggle('on', !!S.gambleArm);
+  if (hasCheck && !blind) {
+    if (S.gambleArm) wBtn.textContent = `🎯 拼一把：已武装（拼令 ×${S.gambleTokens}）——点带判定的选项即押注：拼赢额外功名，拼空本场按失败处理`;
+    else if (canArm) wBtn.textContent = `🎯 拼一把：关（拼令 ×${S.gambleTokens} · 点此武装，搏一次额外功名）`;
+    else wBtn.textContent = `🎯 拼一把：不可用（${S.gambleTokens <= 0 ? '没有拼令' : (S.gambleCh === S.ch ? '本章已拼过' : '需先触发羁绊')} · 拼令 ×${S.gambleTokens}）`;
+    wBtn.onclick = () => { if (!canArm && !S.gambleArm) return; S.gambleArm = !S.gambleArm; renderChapterOptions(ch); };
+  }
   const box = $('ch-options');
   box.classList.remove('hidden');
   box.innerHTML = ch.options.map((o, i) => {
@@ -2331,22 +2361,24 @@ function renderChapterOptions(ch) {
     if (o.check) {
       const r = successRate(o.check);
       if (S.dailyMod && S.dailyMod.blind) sub += ` · 判定${ATTR_NAMES[o.check]}（词缀·狭路相逢：不示成功率）`;
-      else sub += ` · 判定${ATTR_NAMES[o.check]} ${S.attrs[o.check]} · 成功率 ${S.gamble ? gambleRate(r) + '%（赌）' : r + '%'}`;
+      else sub += ` · 判定${ATTR_NAMES[o.check]} ${S.attrs[o.check]} · 成功率 ${r + '%'}`;
     }
     if (o.taunt) sub += ' · 狂言';
     let preview = '';
     if (S.dailyMod && S.dailyMod.blind) {
       preview = `<span class="opt-preview">今日词缀「狭路相逢」：成功率与后果不预告，凭直觉选。</span>`;
     } else if (o.check) {
-      const wEff = S.gamble ? scaleEffects(o.win.effects, 2) : o.win.effects;
-      const lEff = S.gamble ? scaleEffects(o.lose.effects, 2) : o.lose.effects;
-      preview = `<span class="opt-preview">成 → ${effectSummary(wEff)} ｜ 败 → ${effectSummary(lEff)}（判定失败另扣 健康-3 · 兵马-50）</span>`;
+      preview = `<span class="opt-preview">成 → ${effectSummary(o.win.effects)} ｜ 败 → ${effectSummary(o.lose.effects)}（判定失败另扣 健康-3 · 兵马-50）</span>`;
     } else if (o.fixed) {
       preview = `<span class="opt-preview">后果 → ${effectSummary(o.fixed.effects)}</span>`;
       if (o.kind === '自保') {
         const pen = selfPenalty(S.selfStreak + 1);
         if (pen) preview += `<span class="opt-preview" style="color:#E62B1E;">⚠️ 已连选自保 ${S.selfStreak} 次，再选触发连罚：${effectSummary(pen)}</span>`;
       }
+    }
+    if (S.gambleArm && o.check && !blind) {  /* v5.26 A 组件预览：只给把握三档＋拼赢 +X，不出现百分比/赔率 */
+      const wr = chapterRatePreview(o.check);
+      preview += `<span class="opt-preview wager-preview">🎯 拼一把：本场把握 ${wagerFeel(wr)} · 拼赢额外功名 +${wagerReward(wr, TIER_POINTS[o.win.tier] || 0)} · 拼空本场按失败处理</span>`;
     }
     return `<button class="opt-btn" data-opt="${i}"><b>${o.label}.</b> ${o.text}<span class="opt-sub">${sub}</span>${preview}</button>`;
   }).join('');
@@ -2383,12 +2415,14 @@ function chooseChapterOption(opt) {
   }
   if (opt.taunt) S.taunts++;
   let branch, head = '', extraNote = '';
-  const gambling = S.gamble && !!opt.check;
+  const wagerArmed = !!S.gambleArm && !!opt.check && !(S.dailyMod && S.dailyMod.blind);  /* v5.26 拼一把武装态（进入结算即清，防残留） */
+  S.gambleArm = false;
   let success = null;
   let roll = null, rate = null;
+  let wager = null;
   if (opt.check) {
     const baseRate = successRate(opt.check);
-    rate = gambling ? gambleRate(baseRate) : baseRate;
+    rate = baseRate;
     let jinnangUsed = false;
     if (S.jinnang) { rate = clamp(rate + 12, 10, 95); jinnangUsed = true; S.jinnang = false; }
     let bondTempUsed = false;
@@ -2396,10 +2430,34 @@ function chooseChapterOption(opt) {
     roll = randInt(1, 100);
     if (typeof Snd !== 'undefined') Snd.sfx('dice');
     success = roll <= rate;
+    /* v5.26 拼一把结算：武装且闸口齐备即下注——拼令当场扣 1 枚（只有押赢回补）；
+       roll1 成功再掷 roll2（同 rate）：roll2 过＝押赢（额外功名 R 只走 creditMerit）；roll2 败＝翻转为败，
+       其后分支、统一另扣与正常判负完全同价，A 不追加任何惩罚 */
+    if (wagerArmed && S.gambleTokens > 0 && S.gambleCh !== S.ch && (!GAMBLE.requireBond || Object.keys(S.bonds || {}).length > 0)) {
+      S.gambleCh = S.ch;
+      S.gambleTokens--;
+      if (!S.tele) S.tele = { wager:0, wagerWin:0, wagerFlip:0, eWeakShow:0, eWeakPick:0, eStrongShow:0, eStrongPick:0, bondEvent:0 };
+      S.tele.wager++;
+      wager = { armed: true, flip: false, R: 0 };
+      if (success) {
+        const roll2 = randInt(1, 100);
+        if (roll2 <= rate) {
+          wager.R = wagerReward(rate, TIER_POINTS[opt.win.tier] || 0);
+          if (wager.R > 0) creditMerit(wager.R);
+          S.gambleTokens = Math.min(GAMBLE.tokenCap, S.gambleTokens + GAMBLE.tokenRefundOnWin);
+          S.tele.wagerWin++;
+          unlockAch('gambleWin');  /* 成就「赌徒本色」改挂拼一把胜场（旧赌一把已下线，id 不变、存量解锁不受影响） */
+        } else {
+          success = false;
+          wager.flip = true;
+          S.tele.wagerFlip++;
+        }
+      }
+    }
     const raw = success ? opt.win : opt.lose;
-    branch = gambling ? Object.assign({}, raw, { effects: scaleEffects(raw.effects, 2) }) : raw;
-    head = `掷骰 ${roll}（成功率 ${rate}%${gambling ? ' · 赌一把' : ''}${jinnangUsed ? ' · 锦囊护体' : ''}${bondTempUsed ? ' · 隆中余势' : ''}）——${success ? '成了' : '败了'}`;
-    if (gambling && success) unlockAch('gambleWin');  /* v5.8 成就：赌徒本色 */
+    branch = raw;
+    head = `掷骰 ${roll}（成功率 ${rate}%${jinnangUsed ? ' · 锦囊护体' : ''}${bondTempUsed ? ' · 隆中余势' : ''}）——${success ? '成了' : '败了'}`;
+    if (wager) head += wager.flip ? ' · 拼一把落空：本场按失败处理' : (success ? ` · 拼一把命中${wager.R > 0 ? '：功名 +' + wager.R : ''}` : ' · 拼一把落空');
     if (opt.kind === '亲为') {
       if (success && S.attrs[opt.check] >= 85) { S.scenes++; head += ' · 名场面！'; }
       if (!success) S.personalFail++;
@@ -2425,8 +2483,7 @@ function chooseChapterOption(opt) {
       extraNote = (extraNote ? extraNote + '｜' : '') + `自保连选第 ${S.selfStreak} 次，连罚：${effectSummary(pen)}`;
     }
   } else { S.selfStreak = 0; }
-  S.gamble = false;
-  if (!ch.noMerit && branch.tier) S.merit += (TIER_POINTS[branch.tier] || 0) * (gambling && success ? 2 : 1);
+  if (!ch.noMerit && branch.tier) S.merit += (TIER_POINTS[branch.tier] || 0);
   const bio = (branch.bio || '').replace(/\{兵马\}/g, String(S.troops));
   if (bio) S.bios.push(bio);
   if (S.health <= 0) S.deadPending = true;
@@ -2438,7 +2495,7 @@ function chooseChapterOption(opt) {
   S.rewindAvail = rewindAvailable;
   S.lastSettle = {
     ch: S.ch, kind: 'chapter', opt: optIdx,
-    roll, rate, ok: success, tier: branch.tier || null,
+    roll, rate, wager, ok: success, tier: branch.tier || null,
     gainText: effectSummary(branch.effects), note: extraNote,
     dead: !!S.deadPending, evId: null, head, bio
   };
@@ -2476,6 +2533,7 @@ function renderSettle(animate) {
 }
 /* 章末：先判事件（触发则停在弹窗，关窗后走 proceedAfterChapter，不重复判定），再判推进 */
 function afterChapter() {
+  grantChapterMilestoneTokens();  /* v5.26 拼一把挣令·章节里程碑 */
   rewindAvailable = false; rewindSnapshot = null;
   S.rewindSnap = null; S.rewindAvail = false;
   syncAllAdBtns();
@@ -2493,6 +2551,34 @@ function proceedAfterChapter() {
   enterChapter(S.ch + 1);
 }
 
+/* ---------- 羁绊扩展 E（v5.26）：事件改写——渲染层组装时按羁绊状态注入专属选项，结算走既有事件后果通道，EVENTS 本体除加 bondRewrite 字段外不改；
+   弱形态＝任一成员已夺技（safe-low 直结／risk-up 带判定＋rateBonus），不开隐藏分支；强形态＝该对已触发，升级为带判定的隐藏分支（safe-low 事件为带代价的直结分支）；
+   同一事件每局至多注入 1 个专属选项（每事件至多一条 bondRewrite 配置，结构上即单挂） ---------- */
+function bondRewriteState(ev) {
+  const rw = ev && ev.bondRewrite;
+  if (!rw) return null;
+  const B = BONDS.find(b => b.id === rw.bond);
+  if (!B) return null;
+  if (S.bonds && S.bonds[B.id]) return { bond: B, form: 'strong' };
+  if (bondLockedMembers(B).length > 0) return { bond: B, form: 'weak' };
+  return null;
+}
+function eventRenderOptions(ev) {
+  const opts = ev.options.slice();
+  const st = bondRewriteState(ev);
+  if (st) {
+    const rw = ev.bondRewrite;
+    const src = st.form === 'strong' ? rw.strong : rw.weak;
+    if (src) {
+      const o = Object.assign({}, src, { label: '💞', bondOpt: true, bondId: rw.bond, form: st.form });
+      if (st.form === 'weak' && rw.weakType === 'risk-up') o.rateBonus = GAMBLE.rateBonus;  /* 弱形态 risk-up 固定加成走 GAMBLE 配置，不散落 */
+      opts.push(o);
+      if (S.tele) { if (st.form === 'weak') S.tele.eWeakShow++; else S.tele.eStrongShow++; }
+    }
+  }
+  return opts;
+}
+
 /* ---------- 事件（任务书 §4.2-5 / §6） ---------- */
 function drawEvent() {
   let pool = REGULAR_POOL.filter(e => !S.eventsUsed.includes(e.id));
@@ -2507,6 +2593,7 @@ function drawEvent() {
   return pickedEv;
 }
 let curEvent = null;
+let curEventOpts = null;  /* v5.26：本事件渲染用选项数组（含注入项），结算下标以此为准 */
 function openEvent(ev) {
   curEvent = ev;
   /* v5.13：事件专属第一人称配图（EV_ART 缺图时不显示图位，保持旧观感） */
@@ -2521,23 +2608,26 @@ function openEvent(ev) {
   $('btn-ev-close').classList.add('hidden');
   const box = $('ev-options');
   box.classList.remove('hidden');
-  box.innerHTML = ev.options.map((o, i) => {
+  const opts = eventRenderOptions(ev);  /* v5.26 E：注入羁绊专属选项（Show 遥测在此计数，每次打开只计一次） */
+  curEventOpts = opts;
+  box.innerHTML = opts.map((o, i) => {
     let sub = '';
-    if (o.check) sub = `判定${ATTR_NAMES[o.check]} · 成功率 ${successRate(o.check)}%`;
+    if (o.check) sub = `判定${ATTR_NAMES[o.check]} · 成功率 ${clamp(successRate(o.check) + (o.rateBonus || 0), 10, 95)}%`;
     if (o.taunt) sub += (sub ? ' · ' : '') + '狂言';
-    return `<button class="opt-btn" data-ev-opt="${i}"><b>${o.label}.</b> ${o.text}${sub ? `<span class="opt-sub">${sub}</span>` : ''}</button>`;
+    return `<button class="opt-btn" data-ev-opt="${i}"><b>${o.label}${o.bondOpt ? '' : '.'}</b> ${o.text}${sub ? `<span class="opt-sub">${sub}</span>` : ''}</button>`;
   }).join('');
-  box.querySelectorAll('[data-ev-opt]').forEach(b => b.onclick = () => chooseEventOption(ev.options[+b.dataset.evOpt]));
+  box.querySelectorAll('[data-ev-opt]').forEach(b => b.onclick = () => chooseEventOption(opts[+b.dataset.evOpt]));
   $('event-modal').classList.remove('hidden');
 }
 function chooseEventOption(opt) {
   const ev = curEvent;
-  const optIdx = ev ? ev.options.indexOf(opt) : -1;
+  const optIdx = curEventOpts ? curEventOpts.indexOf(opt) : (ev ? ev.options.indexOf(opt) : -1);
+  if (opt.bondOpt && S.tele) { if (opt.form === 'weak') S.tele.eWeakPick++; else if (opt.form === 'strong') S.tele.eStrongPick++; }  /* v5.26 E 遥测 */
   if (opt.taunt) S.taunts++;
   let result = '';
   let roll = null, rate = null, ok = null, evHead = '', evBody = '', evNote = '';
   if (opt.check) {
-    rate = successRate(opt.check);
+    rate = clamp(successRate(opt.check) + (opt.rateBonus || 0), 10, 95);  /* v5.26 E：专属选项 rateBonus（原生选项无此字段，行为不变；事件判定不吃锦囊/临时加成的现行规则不动） */
     roll = randInt(1, 100);
     const success = roll <= rate;
     ok = success;
@@ -3483,7 +3573,7 @@ function applyPendingAdGrant(p, toChapter) {
     S.health = snap.health; S.troops = snap.troops; S.sec = snap.sec; S.merit = snap.merit;
     S.scenes = snap.scenes; S.taunts = snap.taunts; S.personalFail = snap.personalFail;
     S.selfStreak = snap.selfStreak; S.bios = snap.bios; S.flags = snap.flags; S.attrs = snap.attrs;
-    S.deadPending = false; S.gamble = false;
+    S.deadPending = false; S.gambleArm = false;  /* 改命回滚清武装态；已押拼令不退、频率闸保留（赌注已成立） */
     S.lastSettle = null; S.rewindSnap = null; S.rewindAvail = false; rewindSnapshot = null; rewindAvailable = false;
     S.rewindLeft = Math.max(0, (S.rewindLeft || 0) - 1);
     rewindChapterUsed = S.ch;
@@ -3525,6 +3615,12 @@ async function restoreGame() {
   S.bondLinkUsed = !!__os.bondLinkUsed;
   S.usedDirectedThisRun = !!__os.usedDirectedThisRun;  /* v5.25：旧档无此字段时为未用 */
   S.radarNext = !!__os.radarNext;  /* v5.25 */
+  /* v5.26 拼一把存档 normalize（照羁绊段同款 __os 口径）：旧档无新字段时拼令按开局赠数起、里程碑按已通关章数推定已发档 */
+  S.gambleTokens = (typeof __os.gambleTokens === 'number') ? clamp(__os.gambleTokens, 0, GAMBLE.tokenCap) : GAMBLE.startTokens;
+  S.gambleCh = (typeof __os.gambleCh === 'number') ? __os.gambleCh : 0;
+  S.gambleArm = false;  /* 武装态不跨恢复保留，防恢复即武装 */
+  S.gambleEarnPaid = (typeof __os.gambleEarnPaid === 'number') ? __os.gambleEarnPaid : Math.floor((S.ch || 0) / GAMBLE.earnChapterEvery);
+  S.tele = (__os.tele && typeof __os.tele === 'object') ? Object.assign({ wager:0, wagerWin:0, wagerFlip:0, eWeakShow:0, eWeakPick:0, eStrongShow:0, eStrongPick:0, bondEvent:0 }, __os.tele) : { wager:0, wagerWin:0, wagerFlip:0, eWeakShow:0, eWeakPick:0, eStrongShow:0, eStrongPick:0, bondEvent:0 };
   if (S.__unveilBase === undefined) S.__unveilBase = null;
   S.bondRewindAvail = !!__os.bondRewindAvail && (S.bondFreeRewind || 0) > 0 && !!rewindSnapshot && rewindChapterUsed !== S.ch;
   /* 读 PENDING 待发奖励标记（旧版无 type 标记自然降级为仅恢复进度） */
@@ -3601,7 +3697,8 @@ function pushRecord(endingId) {
     list.push({
       ts: Date.now(), score: S.score, ending: def.name || endingId, endingId,
       title: S.title, route: S.route, ovr: S.ovr, merit: S.merit, scenes: S.scenes,
-      troops: S.troops, fame: S.sec.fame, fate: S.fate ? S.fate.name : ''
+      troops: S.troops, fame: S.sec.fame, fate: S.fate ? S.fate.name : '',
+      tele: S.tele ? Object.assign({}, S.tele) : null  /* v5.26 拼一把/E 遥测随本局战绩落盘 */
     });
     list.sort((a, b) => (b.score - a.score) || (a.ts - b.ts));
     saveRecords(list.slice(0, 100));
@@ -3692,7 +3789,7 @@ const ACHIEVEMENTS = [
   { id:'locks50',   icon:'🔍', name:'阅人无数', desc:'累计夺技 50 次' },
   { id:'locks150',  icon:'🎣', name:'英才尽入彀中', desc:'累计夺技 150 次' },
   { id:'noDeBuPei', icon:'⚖️', name:'德才兼备', desc:'一局夺技结束时德不配位为 0 项' },
-  { id:'gambleWin', icon:'🎲', name:'赌徒本色', desc:'「赌一把」判定获胜一次' },
+  { id:'gambleWin', icon:'🎲', name:'赌徒本色', desc:'「拼一把」押赢一次' },
   { id:'scenes3',   icon:'🎬', name:'名场面制造机', desc:'单局打出 3 个名场面' },
   { id:'taunts5',   icon:'📣', name:'狂言乱世', desc:'单局放出 5 次狂言' },
   { id:'events5',   icon:'🌀', name:'奇遇连连', desc:'单局触发 5 次随机事件' },
@@ -3713,6 +3810,7 @@ function unlockAch(id) {
   if (c.ach[id]) return;
   c.ach[id] = Date.now();
   saveCollection(c);
+  if (GAMBLE.earnAchIds.includes(id)) grantWagerTokens(1);  /* v5.26 拼一把挣令·成就源（仅首达发放——已解锁时 unlockAch 在上方已返回） */
   creditMerit(8);  /* v5.19：成就首达折功名 +8 */
   const def = ACHIEVEMENTS.find(a => a.id === id);
   if (def) showGameToast(`🏆 成就达成：${def.name}`);
@@ -4224,7 +4322,7 @@ function applyRewindSnapshot(snap) {  /* v5.24 抽出：广告改命与羁绊免
   S.health = snap.health; S.troops = snap.troops; S.sec = snap.sec; S.merit = snap.merit;
   S.scenes = snap.scenes; S.taunts = snap.taunts; S.personalFail = snap.personalFail;
   S.selfStreak = snap.selfStreak; S.bios = snap.bios; S.flags = snap.flags; S.attrs = snap.attrs;
-  S.deadPending = false; S.gamble = false;
+  S.deadPending = false; S.gambleArm = false;  /* 改命回滚清武装态；已押拼令不退、频率闸保留（赌注已成立） */
   S.lastSettle = null; S.rewindSnap = null; S.rewindAvail = false; S.bondRewindAvail = false;
   rewindSnapshot = null; rewindAvailable = false;
 }
