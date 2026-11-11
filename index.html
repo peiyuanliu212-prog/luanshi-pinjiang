@@ -461,6 +461,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
       <canvas id="poster-canvas" width="720" height="960" style="width:100%;border-radius:10px;margin-top:12px;display:block;"></canvas>
       <div class="poster-actions">
         <button class="btn-primary" id="btn-copy">发帖分享</button>
+        <button class="btn-ghost" id="btn-war-report">发战报</button>
         <button class="btn-ghost" id="btn-records-poster">战绩榜</button>
         <button class="btn-ghost" id="btn-restart">再拼一个</button>
       </div>
@@ -2774,10 +2775,26 @@ function computeLbParts(endingId) {
     { label: '结局加成', pts: P(ENDING_DEFS[endingId].bonus || 0), hint: ENDING_DEFS[endingId].name }
   ];
 }
+/* 阶段0 战报先行（浴火重生定案 2026-11-11）：拼将日＝北京时间每周日；仅文案与日期判断，不动种子规则与判定。
+   dayIndex 0＝1970-01-01（周四），故 (dayIndex+4)%7＝0 即周日（0=周日） */
+function isPinjiangDay() { return (dayIndexOf(beijingDateKey()) + 4) % 7 === 0; }
 function postText() {
   const def = ENDING_DEFS[S.endingId];
   const mt = loadMerit();
-  return `我拼了个${S.title}${mt.title ? `「${titleName(mt.title)}」` : ''}，${def.name}，声望${S.sec.fame}，霸业评分${S.score}分${S.runSeed ? `，本局种子${seedCodeOf(S.runSeed)}（首页可挑战同款）` : ''}，列传在此。你来评评？`;  /* v5.19：称号+种子码 */
+  return `我拼了个${S.title}${mt.title ? `「${titleName(mt.title)}」` : ''}，${def.name}，声望${S.sec.fame}，霸业评分${S.score}分${S.runSeed ? `，本局种子${seedCodeOf(S.runSeed)}（首页可挑战同款）` : ''}，列传在此。你来评评？${isPinjiangDay() ? '\n📅 本周拼将日 · 同盘竞技——今日每日挑战全员同盘，来拼一把！' : ''}`;  /* v5.19：称号+种子码；阶段0：周日拼将日行 */
+}
+/* 战报文案：结局名＋霸业评分＋霸业值＋同盘挑战；拼将日多带一行。文案红线：不许出现福利码本体 */
+function warReportText() {
+  const def = ENDING_DEFS[S.endingId];
+  const lb = computeLbScore(S.endingId);
+  const lines = [
+    `【战报】${S.title} —— ${def.name}`,
+    `霸业评分 ${S.score} 分 ｜ 霸业值 ${lb} ｜ 声望 ${S.sec.fame} ｜ 终局兵马 ${S.troops}`
+  ];
+  if (S.runSeed) lines.push(`本局种子 ${seedCodeOf(S.runSeed)}，首页输入种子码可挑战同款。`);
+  lines.push('同盘挑战：今日每日挑战全员同一盘面、同一词缀，来拼一把——同样的开局，你能比我高几分？');
+  if (isPinjiangDay()) lines.push('📅 本周拼将日 · 同盘竞技');
+  return lines.join('\n');
 }
 function endingReportHTML(endingId) {
   const lb = computeLbScore(endingId);
@@ -3249,7 +3266,9 @@ renderNoticeBoard();
   const WELFARE_GAME = 'ls', WELFARE_LABEL = '功名 ×300', WELFARE_AMOUNT = 300;
   function wfBlockHtml() {
     const m = loadMerit();
-    if (m.welfareClaimed) return '<div class="card" style="margin-top:10px;"><b>🎁 群福利</b><p class="hint" style="margin:4px 0;">✅ 你已经领过这份福利啦</p></div>';
+    if (m.welfareClaimed) return '<div class="card" style="margin-top:10px;"><b>🎁 群福利</b><p class="hint" style="margin:4px 0;">✅ 群福利你已经领过啦——有新的<b>活动码</b>可以在这里继续输入（每个码限领一次，实发以服务端为准）。</p>'
+      + '<div style="display:flex;gap:8px;"><input class="wf-code" placeholder="输入活动码" style="flex:1;text-transform:uppercase;"><button class="btn-primary wf-btn">领取</button></div>'
+      + '<p class="hint wf-msg" style="color:#b3402a;margin:4px 0;"></p></div>';
     return '<div class="card" style="margin-top:10px;"><b>🎁 群福利</b>'
       + '<p class="hint" style="margin:4px 0;">进群福利：<b>' + WELFARE_LABEL + '</b>＋<b>定向招募资格 ×1</b>（每人限领一次，定向资格下一局开局生效）。福利码将在群内发布，开放后在此输入领取。</p>'
       + '<div style="display:flex;gap:8px;"><input class="wf-code" placeholder="输入福利码" style="flex:1;text-transform:uppercase;"><button class="btn-primary wf-btn">领取</button></div>'
@@ -4767,6 +4786,49 @@ $('btn-copy').onclick = async () => {
     sel.removeAllRanges();
     sel.addRange(range);
     toast('已选中文案，长按即可复制');
+  }
+};
+
+/* 阶段0 发战报：点击触发（不自动弹），复用 btn-copy 同一 openPostEditor 通道与话题配置；站外降级为选中文案复制 */
+let warSharing = false;
+$('btn-war-report').onclick = async () => {
+  if (warSharing) return;
+  const toast = (msg) => {
+    const t = $('poster-copied');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 2600);
+  };
+  const sdk = window.ColorboxAI && window.ColorboxAI.request && window.ColorboxAI.request.bbs && window.ColorboxAI.request.bbs.openPostEditor;
+  if (typeof sdk === 'function') {
+    warSharing = true;
+    try {
+      const def = ENDING_DEFS[S.endingId];
+      const params = {
+        title: `战报：${def.name}，霸业评分${S.score}分`,
+        content: warReportText()
+      };
+      const bbs = window.ColorboxAI.bbsConfig && await window.ColorboxAI.bbsConfig.get();
+      if (bbs && typeof bbs.bbsTagId === 'string' && bbs.bbsTagId.trim() !== '') {
+        params.topicId = bbs.bbsTopicId;
+        params.tagId = bbs.bbsTagId;
+        params.topicName = bbs.bbsTopicName;
+        params.tagName = bbs.bbsTagName;
+      }
+      const res = await window.ColorboxAI.request.bbs.openPostEditor(params);
+      if (!res || res.code !== 200) toast((res && res.message) || '唤起发帖失败，请重试');
+    } catch (e) {
+      toast('唤起发帖失败，请重试');
+    }
+    warSharing = false;
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = warReportText();
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    toast('已选中文案，长按即可复制');
+    setTimeout(() => ta.remove(), 3000);
   }
 };
 </script>
