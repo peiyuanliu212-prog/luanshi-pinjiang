@@ -297,6 +297,20 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
 .lb-row.top2 { background:#eef0f2; border-radius:8px; }
 .lb-row.top3 { background:#fbe3c5; border-radius:8px; }
 .lb-sub { font-size:12px; color:#8a7f6a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* 拼将令 */
+#poster-canvas.frame-series { border:4px double #b03a2e; box-shadow:0 0 0 3px rgba(201,162,39,.6), 0 0 0 7px rgba(176,58,46,.4); }
+.series-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:10px 0; }
+.series-cell { border:1px solid #e7ddc8; border-radius:10px; padding:9px 4px; text-align:center; background:#fffdf6; }
+.series-cell.lit { border-color:#c9a227; background:#fff8e1; }
+.series-cell .sg-name { font-weight:700; font-size:14px; }
+.series-cell .sg-st { font-size:12px; color:#8a7f6a; margin-top:3px; }
+.series-cell.lit .sg-st { color:#8a6d1f; font-weight:700; }
+.series-tier { display:flex; align-items:center; gap:8px; padding:8px 2px; border-bottom:1px dashed #e7ddc8; }
+.series-tier .st-info { flex:1; min-width:0; }
+.series-tier .st-name { font-weight:700; font-size:14px; }
+.series-tier .st-cond { font-size:12px; color:#8a7f6a; }
+.series-claim { flex:none; padding:7px 14px; }
+.series-claim[disabled] { opacity:.55; }
 </style>
 </head>
 <body>
@@ -330,6 +344,7 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
       <button class="btn-ghost" id="btn-gallery" style="width:100%;margin-top:8px;">📖 图鉴 · 成就</button>
       <button class="btn-ghost" id="btn-bonds" style="width:100%;margin-top:8px;">💞 羁绊一览 <span id="bonds-seen-count"></span></button>
       <button class="btn-ghost" id="btn-shop" style="width:100%;margin-top:8px;">🏯 功名商店 <span id="shop-bal"></span></button>
+      <button class="btn-ghost" id="btn-series" style="width:100%;margin-top:8px;">🧩 拼将令 <span id="series-chip"></span></button>
       <button class="btn-ghost" id="btn-archive" style="width:100%;margin-top:8px;">📂 存档</button>
       <button class="btn-ghost" id="btn-notice" style="width:100%;margin-top:8px;">📜 更新公告 <span class="ndot hidden" id="notice-dot"></span></button>
       <div class="hero-note">历史爱好者自制小游戏，非官方 · 单局约 15 分钟</div>
@@ -594,6 +609,13 @@ h2::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; wi
   <p class="hint" style="text-align:center;">本群码 11 月 11 日前有效，过期后看最新公告换新码</p>
   <div class="wf-slot"></div>
   <button class="btn-primary btn-big" id="btn-group-close" style="margin-top:12px;">关闭</button>
+</div></div>
+
+<div id="series-modal" class="modal hidden"><div class="modal-inner">
+  <div class="modal-title">🧩 拼将令 · 六作同辉</div>
+  <p class="hint" style="text-align:center;">六款拼将，同一个你。在任意一作里打通任意一个结局，就点亮它那一格；集的不是数值，是你亲自走完的每一界。</p>
+  <div id="series-body"><p class="hint" style="text-align:center;">正在向云端对账…</p></div>
+  <button class="btn-primary btn-big" id="btn-series-close" style="margin-top:12px;">关闭</button>
 </div></div>
 
 <div id="directed-modal" class="modal hidden"><div class="modal-inner">
@@ -2882,6 +2904,7 @@ function finishEnding(endingId) {
   $('ending-extra').innerHTML = endingExtraHTML();  /* v5.19 */
   { const rp = $('ending-report'); rp.innerHTML = endingReportHTML(endingId); rp.classList.remove('hidden'); }  /* v5.20.1 双报告 */
   try { submitToBoards(endingId, def.name); } catch (e) {}  /* v5.20：全服双榜静默提交 */
+  try { seriesReportRun(endingId); } catch (e) {}  /* 拼将令：本局结局即时上报（失败静默，进游戏回填兜底） */
   showScreen('ending');
 }
 function renderPoster() {
@@ -2901,7 +2924,7 @@ function renderPoster() {
     const pm = $('poster-merit');
     if (pm) { const has = typeof S.__meritGain === 'number'; pm.textContent = has ? `🏯 本局折功名 +${S.__meritGain} · 当前功名 ${mt.bal}` : ''; pm.classList.toggle('hidden', !has); }
     const cv = $('poster-canvas');
-    if (cv) { cv.classList.remove('frame-bronze', 'frame-ink'); if (mt.frame) cv.classList.add(mt.frame); }
+    if (cv) { cv.classList.remove('frame-bronze', 'frame-ink', 'frame-series'); if (mt.frame) cv.classList.add(mt.frame); if (seriesClaimedCache().includes(4)) { cv.classList.remove('frame-bronze', 'frame-ink'); cv.classList.add('frame-series'); } }  /* 拼将令 4 档边框优先于功名商店边框 */
   }
   showScreen('poster');
   drawPosterCanvas();
@@ -4085,7 +4108,7 @@ async function lbProfile() {
 }
 async function lbSubmit(board, payload) {
   const p = await lbProfile();
-  return lbRequest('/leaderboard/submit', Object.assign({ board, displayName: p.nickname, avatar: p.avatar || undefined }, payload));
+  return lbRequest('/leaderboard/submit', Object.assign({ board, displayName: seriesDecorateName(p.nickname), avatar: p.avatar || undefined }, payload));
 }
 function submitToBoards(endingId, endingName) {
   if (!lbAvailable()) return;
@@ -4163,6 +4186,100 @@ async function loadBoard(kind) {
   } catch (e) { st.textContent = '榜单加载失败：' + e.message; }
 }
 document.querySelectorAll('.lb-tab').forEach(b => { b.onclick = () => setLbTab(b.dataset.lbTab); });
+
+/* ---------- 拼将令（跨作联动；进度单一事实源在服务端 series_progress/series_claims，客户端只缓存展示） ---------- */
+const SERIES_ORDER = ['ls', 'fs', 'sh', 'bk', 'sj', 'yx'];
+const SERIES_TIPS = {
+  ls: '汉末夺技拼将，六界的起点',
+  fs: '封神台上夺法宝，阐截两教任选师承',
+  sh: '水泊聚义，义气与功名两条心',
+  bk: '拼图选秀，拼一支跨时代的巨星队',
+  sj: '大荒拾卷，携万兽走遍神性与野性',
+  yx: '二十城巡演，拼一支说唱天团'
+};
+const SERIES_TIER_DEFS = [
+  { tier: 2, name: '称号「初入乱世」', cond: '点亮 2 作' },
+  { tier: 4, name: '系列海报边框', cond: '点亮 4 作' },
+  { tier: 6, name: '限定称号「六合拼将」＋纪念列传', cond: '点亮 6 作，且至少 3 作打出非最易结局' }
+];
+let __seriesMe = null;
+function seriesClaimedCache() { try { const a = JSON.parse(localStorage.getItem('luanshi_series_claimed') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function seriesSetClaimedCache(a) { try { localStorage.setItem('luanshi_series_claimed', JSON.stringify(a || [])); } catch (e) {} }
+function seriesTitleOn() { try { return localStorage.getItem('luanshi_series_title_on') !== '0'; } catch (e) { return true; } }
+function seriesMyTitle() { const c = seriesClaimedCache(); if (c.includes(6)) return '六合拼将'; if (c.includes(2)) return '初入乱世'; return ''; }
+function seriesDecorateName(name) { const t = seriesMyTitle(); return (t && seriesTitleOn()) ? ('「' + t + '」' + name) : name; }
+function seriesRenderChip() { const el = $('series-chip'); if (el) el.textContent = __seriesMe ? ('· 已点亮 ' + __seriesMe.litCount + '/6') : ''; }
+async function seriesFetchMe() {
+  if (!lbAvailable()) return null;
+  try {
+    const d = await lbRequest('/series/me');
+    if (d && d.games) { __seriesMe = d; if (Array.isArray(d.claimed)) seriesSetClaimedCache(d.claimed); seriesRenderChip(); }
+  } catch (e) { /* 对账失败静默，保留上次缓存展示 */ }
+  return __seriesMe;
+}
+async function seriesBackfill() {
+  try {
+    if (!lbAvailable()) return;
+    const ids = Object.keys(loadCollection().endings || {});
+    const sig = ids.slice().sort().join(',');
+    let prev = ''; try { prev = localStorage.getItem('luanshi_series_bf_v1') || ''; } catch (e) {}
+    if (ids.length && sig !== prev) {
+      await lbRequest('/series/report', { game: 'ls', endings: ids.slice(0, 40), source: 'backfill' });
+      try { localStorage.setItem('luanshi_series_bf_v1', sig); } catch (e) {}
+    }
+    await seriesFetchMe();
+  } catch (e) { /* 回填失败静默：下次进游戏再试，不拦玩家 */ }
+}
+function seriesReportRun(endingId) {
+  if (!lbAvailable() || !endingId) return;
+  lbRequest('/series/report', { game: 'ls', endingId, source: 'run' }).then(() => seriesFetchMe()).catch(() => {});
+}
+function seriesRenderPanel() {
+  const body = $('series-body');
+  if (!body) return;
+  if (!lbAvailable()) { body.innerHTML = '<p class="hint" style="text-align:center;">拼将令要在虎扑 App 内打开才能与云端对账（站外暂不可见）。你在这台设备上打出的结局都记在图鉴里，进 App 后打开本面板就会自动对上。</p>'; return; }
+  if (!__seriesMe) { body.innerHTML = '<p class="hint" style="text-align:center;">正在向云端对账…</p>'; return; }
+  const me = __seriesMe;
+  const cells = SERIES_ORDER.map(g => {
+    const s = me.games[g] || {};
+    return `<div class="series-cell${s.lit ? ' lit' : ''}"><div class="sg-name">${lbEsc(s.name || g)}</div><div class="sg-st">${s.lit ? ('⭐ 已点亮' + (s.hard ? ' · 非最易 ✔' : '')) : '未点亮'}</div></div>`;
+  }).join('');
+  const tiers = SERIES_TIER_DEFS.map(t => {
+    const claimed = (me.claimed || []).includes(t.tier);
+    const can = (me.claimable || []).includes(t.tier);
+    const btn = claimed ? '<button class="btn-ghost series-claim" disabled>已领取</button>'
+      : can ? `<button class="btn-primary series-claim" data-series-claim="${t.tier}">领取</button>`
+      : `<button class="btn-ghost series-claim" disabled>${(t.tier === 6 && me.litCount >= 6) ? '差非最易结局' : ('差 ' + (t.tier - me.litCount) + ' 作')}</button>`;
+    return `<div class="series-tier"><div class="st-info"><div class="st-name">${t.tier} 档 · ${t.name}</div><div class="st-cond">${t.cond}</div></div>${btn}</div>`;
+  }).join('');
+  const nextGame = SERIES_ORDER.find(g => !(me.games[g] && me.games[g].lit));
+  const nextHtml = nextGame ? `<p class="hint" style="margin-top:10px;">下一站推荐：《${lbEsc((me.games[nextGame] || {}).name || '')}》——${SERIES_TIPS[nextGame]}。在虎扑里搜游戏名就能开玩，同一个账号，进度自动记在这本令上。</p>` : '<p class="hint" style="margin-top:10px;">六界全通，无处不是归途。这本令，齐了。</p>';
+  const title = seriesMyTitle();
+  const titleHtml = title ? `<label class="hint" style="display:block;text-align:center;margin-top:10px;"><input type="checkbox" id="series-title-toggle" ${seriesTitleOn() ? 'checked' : ''}> 在全服榜昵称前显示称号「${title}」</label>` : '';
+  body.innerHTML = `<p style="text-align:center;margin:2px 0;">已点亮 <b>${me.litCount}/6</b> · 非最易 <b>${me.hardCount}</b> 作${title ? ` · 我的称号「${title}」` : ''}</p><div class="series-grid">${cells}</div>${tiers}${nextHtml}${titleHtml}`;
+  body.querySelectorAll('[data-series-claim]').forEach(b => { b.onclick = () => seriesClaim(Number(b.dataset.seriesClaim)); });
+  const tg = $('series-title-toggle');
+  if (tg) tg.onchange = () => { try { localStorage.setItem('luanshi_series_title_on', tg.checked ? '1' : '0'); } catch (e) {} showGameToast(tg.checked ? '榜单称号已开启，下次上榜生效' : '榜单称号已关闭'); };
+}
+async function seriesClaim(tier) {
+  try {
+    const r = await lbRequest('/series/claim', { tier });
+    await seriesFetchMe();
+    seriesRenderPanel();
+    showGameToast('🎉 已领取：' + ((r && r.reward && r.reward.label) || '系列奖励'));
+  } catch (e) { showGameToast((e && e.message) || '领取失败，稍后再试'); }
+}
+async function openSeries() {
+  $('series-modal').classList.remove('hidden');
+  seriesRenderPanel();
+  await seriesBackfill();
+  if (!__seriesMe && lbAvailable()) { const b = $('series-body'); if (b) b.innerHTML = '<p class="hint" style="text-align:center;">对账没成功，网络或登录状态可能不稳，关掉重开一次试试。</p>'; return; }
+  seriesRenderPanel();
+}
+$('btn-series').onclick = openSeries;
+$('btn-series-close').onclick = () => $('series-modal').classList.add('hidden');
+$('series-modal').addEventListener('click', e => { if (e.target === $('series-modal')) $('series-modal').classList.add('hidden'); });
+setTimeout(() => { seriesBackfill(); }, 1600);  /* 进游戏静默回填＋对账（站外无 SDK 时自动跳过） */
 
 const ENDING_HINTS = {
   disease:'提示：身体先垮了', diedWar:'提示：亲征太多，命悬一线', founder:'称王线 · 开国之君',
