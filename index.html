@@ -201,6 +201,7 @@ h3 { font-size: 15px; margin-bottom: 8px; }
 .notice-item { background: rgba(201,162,39,.07); border: 1px solid rgba(201,162,39,.35); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
 .notice-item:last-child { margin-bottom: 0; }
 .notice-v { font-weight: 800; color: #8a6d1f; }
+.notice-link-btn { background: rgba(201,162,39,.15); border: 1px solid rgba(201,162,39,.65); color: #8a6d1f; border-radius: 6px; padding: 6px 14px; font-weight: 700; cursor: pointer; }
 .modal { position: fixed; inset: 0; background: rgba(26,26,26,.45); display: flex; align-items: center; justify-content: center; padding: 18px; z-index: 50; }
 .modal-inner { background: #fff; border-radius: 16px; padding: 22px 18px; max-width: 520px; width: 100%; max-height: 86vh; overflow-y: auto; }
 .modal-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
@@ -3320,6 +3321,7 @@ try { renderDailyCard(); } catch (e) {}  /* v5.19：首屏即渲染今日挑战�
 
 /* ---------- v5.15 更新公告 ---------- */
 const NOTICES = [
+  { v: 'v5.25', d: '11月18日', t: '新作上线 · 《我在联赛当经理》', items: ['同作者新作已经上线——组建你的足球俱乐部，签约球员、征战联赛，下线也在成长。'], btn: '去玩《我在联赛当经理》', url: 'https://activity-static.hupu.com/shaper/published/app_e3301d52aa/index.html?shaper_preview=1' },
   { v: 'v5.24', d: '11月8日', t: '羁绊系统上线', items: ['💞 羁绊登场：同一局夺齐配对人物的能力即可触发（全 12 个，首页「羁绊一览」可查配对与效果）', '弱项补强：羁绊会把两人被夺的那一项往上补，弱项补得多——冷门组合也值得凑', '📺 追羁绊：已锁一员时看广告，下一批必出搭档（每局 2 次）；曹操与刘备的《煮酒论英雄》是宿敌，看广告「化敌为友」可解开反目', '诸葛亮与司马懿《冤家路窄》送一次免费改命；刘备与诸葛亮《隆中对》让下一场判定更稳'] },
   { v: 'v5.23', d: '11月6日', t: '群福利＋性能优化', items: ['🎁 群福利开放：首页或交流群弹窗输入群内福利码，领功名 ×300＋定向招募资格 ×1（每人限领一次）', '运行流畅度优化：图集加载与图鉴渲染提速，操作响应更快', '存档加固：新增「云端短码」——整档登记云端换 8 位短码，换设备输码取回，长码继续作离线兜底'] },   { v: 'v5.22', d: '11月5日', t: '稳定性修复', items: ['章节与事件的判定结果现已即时保存，退出重进将直接回到结果页，不再重复结算；改命进度同步落盘更可靠。'] },
   { v: 'v5.21', d: '11月5日', t: '定向招募', items: ['夺技页广告位升级：原「看广告换一批」改为「定向招募」——看广告后自选一个势力，本批全部换成该势力的人物', '看完广告暂时不想换也没事：资格会存着，之后在夺技页点「定向招募已就绪」随时选势力'] },
@@ -3337,16 +3339,34 @@ const NOTICES = [
   { v: 'v5.12', d: '10月31日', t: '历练成长', items: ['打赢判定章节，所考属性历练 +1/+2，成长看得见'] },
 ];
 const NOTICE_KEY = 'luanshi_notice_seen';
+/* 公告内导流按钮（联赛导流批 2026-11-18）：跳转走官方 ColorboxAI.navigate.to（点击触发、查 code、失败 toast）；站外无 SDK 时降级 window.open */
+function noticeBtnHtml(n) {
+  return (n.btn && n.url) ? `<div style="margin-top:6px;"><button class="notice-link-btn" data-nurl="${n.url}">${n.btn}</button></div>` : '';
+}
+function openNoticeLink(url) {
+  try {
+    if (window.ColorboxAI && window.ColorboxAI.navigate && typeof window.ColorboxAI.navigate.to === 'function') {
+      window.ColorboxAI.navigate.to({ url }).then(r => { if (r && r.code !== 200) showGameToast('打开失败，请稍后再试'); }).catch(() => { try { window.open(url, '_blank'); } catch (e) {} });
+      return;
+    }
+  } catch (e) {}
+  try { window.open(url, '_blank'); } catch (e) {}
+}
+function bindNoticeBtns(root) {
+  root.querySelectorAll('.notice-link-btn').forEach(b => { b.onclick = () => openNoticeLink(b.getAttribute('data-nurl')); });
+}
 function renderNoticeBoard() {
   const n = NOTICES[0];
-  $('notice-board').innerHTML = `<div class="notice-item"><span class="notice-v">${n.v}</span> · ${n.d} · <b>${n.t}</b><div class="hint" style="margin-top:4px;">${n.items.join('；')}</div></div>`;
+  $('notice-board').innerHTML = `<div class="notice-item"><span class="notice-v">${n.v}</span> · ${n.d} · <b>${n.t}</b><div class="hint" style="margin-top:4px;">${n.items.join('；')}</div>${noticeBtnHtml(n)}</div>`;
+  bindNoticeBtns($('notice-board'));
   let fresh = false;
   try { fresh = localStorage.getItem(NOTICE_KEY) !== n.v; } catch (e) {}
   $('notice-dot').classList.toggle('hidden', !fresh);
   $('notice-dot2').classList.toggle('hidden', !fresh);
 }
 function openNotices() {
-  $('notice-list').innerHTML = NOTICES.map(n => `<div class="notice-item"><span class="notice-v">${n.v}</span> · ${n.d} · <b>${n.t}</b><div class="hint" style="margin-top:4px;">${n.items.map(i => '· ' + i).join('<br>')}</div></div>`).join('');
+  $('notice-list').innerHTML = NOTICES.map(n => `<div class="notice-item"><span class="notice-v">${n.v}</span> · ${n.d} · <b>${n.t}</b><div class="hint" style="margin-top:4px;">${n.items.map(i => '· ' + i).join('<br>')}</div>${noticeBtnHtml(n)}</div>`).join('');
+  bindNoticeBtns($('notice-list'));
   $('notice-modal').classList.remove('hidden');
   try { localStorage.setItem(NOTICE_KEY, NOTICES[0].v); } catch (e) {}
   $('notice-dot').classList.add('hidden'); $('notice-dot2').classList.add('hidden');
