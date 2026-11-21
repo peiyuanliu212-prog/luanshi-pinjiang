@@ -1578,10 +1578,14 @@ function __initSheetUrls() {
       if (!rules) continue;
       for (const r of rules) {
         if (!r.selectorText || !r.style || !r.style.backgroundImage) continue;
-        const m = /url\("?(data:[^")]+)"?\)/.exec(r.style.backgroundImage);
+        if (r.selectorText !== '.avatar' && r.selectorText !== '.avatar.b2') continue;
+        /* 两种发布形态同读：虎扑内联版是 data: URI，Pages 外链版是 assets/ 相对路径（或 http(s) 绝对地址） */
+        const m = /url\(\s*["']?([^"')]+)["']?\s*\)/.exec(r.style.backgroundImage);
         if (!m) continue;
-        if (r.selectorText === '.avatar') __sheet1Url = m[1];
-        else if (r.selectorText === '.avatar.b2') __sheet2Url = m[1];
+        let u = m[1];
+        if (!/^data:/i.test(u)) { try { u = new URL(u, document.baseURI).href; } catch (e) {} }
+        if (r.selectorText === '.avatar') __sheet1Url = u;
+        else __sheet2Url = u;
       }
     }
   } catch (e) {}
