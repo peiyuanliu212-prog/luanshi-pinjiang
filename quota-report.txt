@@ -1,0 +1,113 @@
+================ QUOTA REPORT ================
+time: 2026-11-23 18:34:36 CST
+------------------------------------------------------------
+[1] SYSTEM (透出值，仅供参考)
+Linux all-in-one-83-dfvqv 6.18.5 #1 SMP Wed Jan 28 20:01:07 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+PRETTY_NAME="Ubuntu 24.04 LTS"
+nproc: 3  cpu_count: 3
+CPU(s):                                  3
+Model name:                              INTEL(R) XEON(R) PLATINUM 8582C
+BIOS Model name:                         pc-q35-10.2  CPU @ 2.0GHz
+Thread(s) per core:                      1
+Core(s) per socket:                      1
+Socket(s):                               3
+               total        used        free      shared  buff/cache   available
+Mem:           5.8Gi       633Mi       4.4Gi        10Mi       938Mi       5.2Gi
+Swap:             0B          0B          0B
+------------------------------------------------------------
+[2] CGROUP LIMITS (能读到就是硬限额)
+self cgroup: 0::/ 
+/sys/fs/cgroup/cpu.max = 200000 100000
+/sys/fs/cgroup/memory.max = 4294967296
+/sys/fs/cgroup/cpu.stat:nr_throttled 6
+/sys/fs/cgroup/cpu.stat:throttled_usec 321184
+max memory size             (kbytes, -m) unlimited
+cpu time                   (seconds, -t) unlimited
+virtual memory              (kbytes, -v) unlimited
+------------------------------------------------------------
+[3] CPU EFFECTIVE CORES (满载实测 — 核心指标)
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import sys; from multiprocessing.forkserver import main; main(10, 11, ['__main__'], sys_argv=sys.argv[1:], **{'sys_path': ['/workspace', '/root/.pyenv/versions/3.14.8/lib/python314.zip', '/root/.pyenv/versions/3.14.8/lib/python3.14', '/root/.pyenv/versions/3.14.8/lib/python3.14/lib-dynload', '/root/.pyenv/versions/3.14.8/lib/python3.14/site-packages'], 'main_path': '/workspace/<stdin>', 'authkey_r': 13})
+                                                             ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/forkserver.py", line 230, in main
+    spawn.import_main_path(main_path)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/spawn.py", line 307, in import_main_path
+    _fixup_main_from_path(main_path)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                                  run_name="__mp_main__")
+  File "<frozen runpy>", line 293, in run_path
+  File "<frozen runpy>", line 261, in _get_code_from_file
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/<stdin>'
+Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+  File "<stdin>", line 11, in measure
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/context.py", line 119, in Pool
+    return Pool(processes, initializer, initargs, maxtasksperchild,
+                context=self.get_context())
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/pool.py", line 215, in __init__
+    self._repopulate_pool()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/pool.py", line 306, in _repopulate_pool
+    return self._repopulate_pool_static(self._ctx, self.Process,
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+                                        self._processes,
+                                        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+                                        self._maxtasksperchild,
+                                        ^^^^^^^^^^^^^^^^^^^^^^^
+                                        self._wrap_exception)
+                                        ^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/pool.py", line 329, in _repopulate_pool_static
+    w.start()
+    ~~~~~~~^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/context.py", line 306, in _Popen
+    return Popen(process_obj)
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/popen_forkserver.py", line 35, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/popen_forkserver.py", line 51, in _launch
+    self.sentinel, w = forkserver.connect_to_new_process(self._fds)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/forkserver.py", line 106, in connect_to_new_process
+    connection.answer_challenge(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+            wrapped_client, self._forkserver_authkey)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/connection.py", line 995, in answer_challenge
+    message = connection.recv_bytes(256)         # reject large message
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/connection.py", line 226, in recv_bytes
+    buf = self._recv_bytes(maxlength)
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/connection.py", line 451, in _recv_bytes
+    buf = self._recv(4)
+  File "/root/.pyenv/versions/3.14.8/lib/python3.14/multiprocessing/connection.py", line 416, in _recv
+    chunk = read(handle, to_read)
+ConnectionResetError: [Errno 104] Connection reset by peer
+------------------------------------------------------------
+[4] MEMORY SURVIVABLE TEST (子进程吃内存，OOM 只杀子进程)
+MEM_TARGET_GB = 8.2
+MEM_HELD_GB = 3.75
+MEM_SURVIVED_TARGET = NO  (child exit=-9; -9/137 = OOM-killed at the real ceiling)
+------------------------------------------------------------
+[5] DISK (df 只能看宿主机余量，真实配额除非写满无法验)
+/root  size=1.5T used=293G avail=1.1T use%=21%
+/workspace  size=1.5T used=293G avail=1.1T use%=21%
+/tmp  size=1.5T used=293G avail=1.1T use%=21%
+/workspace  size=1.5T used=293G avail=1.1T use%=21%
+------------------------------------------------------------
+[6] GPU / NETWORK
+GPU: none (no nvidia-smi)
+GPU dev: none
+network https://example.com -> 200
+------------------------------------------------------------
+[7] SUMMARY — 把从 [1] 到这里的完整输出原样发回，不要自行总结
+END OF QUOTA REPORT (saved to /workspace/quota-report.txt if writable)
