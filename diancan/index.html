@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>灶边 · 渝湘赣家常菜 · 线上点餐</title>
+  <meta name="description" content="重庆菜、湘菜、赣菜一百道家常菜现点现炒，线上点餐三十五分钟送达。">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ======================= 顶栏 ======================= -->
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#" aria-label="灶边首页">
+        <span class="brand-mark">灶</span>
+        <span class="brand-text">
+          <strong>灶边</strong>
+          <small>渝湘赣家常菜</small>
+        </span>
+      </a>
+
+      <div class="deliver">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/>
+          <circle cx="12" cy="10" r="2.6"/>
+        </svg>
+        <div>
+          <small>配送至</small>
+          <span>解放碑 · 民权路 88 号</span>
+        </div>
+      </div>
+
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="m20 20-3.5-3.5"/>
+        </svg>
+        <input id="searchInput" type="search" placeholder="搜菜名，比如 毛血旺、剁椒鱼头" autocomplete="off" aria-label="搜索菜品">
+        <kbd>/</kbd>
+      </label>
+
+      <button class="cart-btn" id="cartBtn" type="button" aria-label="购物车">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 8h12l-1.2 11.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z"/>
+          <path d="M9 10V6a3 3 0 0 1 6 0v4"/>
+        </svg>
+        <span>购物车</span>
+        <em id="cartCount">0</em>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ======================= Hero ======================= -->
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-line"></span>今日现炒 · 共 <span id="statTotal">100</span> 道家常菜</p>
+        <h1>一桌重庆的<em>辣</em>，<br>一口湘江的香。</h1>
+        <p class="lede">
+          从歌乐山辣子鸡、剁椒鱼头到宁都三杯鸡，渝湘赣三地师傅同灶掌勺。
+          一百道家常菜现点现炒，出锅装盒，热气还没散就到你家楼下。
+        </p>
+        <div class="hero-actions">
+          <button class="btn primary" id="heroOrder" type="button">开始点菜</button>
+          <a class="btn ghost" href="#menu">看看菜单</a>
+        </div>
+        <dl class="hero-stats">
+          <div><dt>100</dt><dd>道家常菜</dd></div>
+          <div><dt>3</dt><dd>大菜系</dd></div>
+          <div><dt>28<small>分钟</small></dt><dd>平均送达</dd></div>
+          <div><dt>4.9</dt><dd>顾客评分</dd></div>
+        </dl>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-frame">
+          <img id="heroImg" src="assets/hero.jpg" alt="满桌的渝湘赣家常菜" loading="eager">
+          <span class="hero-seal">100<small>道</small></span>
+        </div>
+        <div class="float-card">
+          <span class="float-dot">荐</span>
+          <div>
+            <small>主厨今日推荐</small>
+            <b>万州烤鱼 <i>月售 2,860 份</i></b>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= 筛选栏 ======================= -->
+    <section class="filters" id="menu">
+      <div class="wrap filters-inner">
+        <div class="chips" id="chips" role="tablist" aria-label="按菜系筛选"></div>
+        <div class="filter-tools">
+          <button class="toggle" id="signatureToggle" type="button" aria-pressed="false">
+            <span class="dot"></span>只看招牌
+          </button>
+          <select class="sort" id="sortSelect" aria-label="排序方式">
+            <option value="recommend">推荐排序</option>
+            <option value="sales">销量优先</option>
+            <option value="priceAsc">价格从低到高</option>
+            <option value="priceDesc">价格从高到低</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= 菜单 ======================= -->
+    <div class="wrap">
+      <p class="result-tip" id="resultTip" hidden></p>
+      <div class="menu" id="menuList"></div>
+    </div>
+  </main>
+
+  <!-- ======================= 页脚 ======================= -->
+  <footer class="site-foot">
+    <div class="wrap foot-inner">
+      <div class="foot-brand">
+        灶边 · 渝湘赣家常菜
+        <small>YUSIANG · HUNAN · JIANGXI</small>
+      </div>
+      <div class="foot-meta">
+        <div>
+          <h4>门店地址</h4>
+          <p>渝中区民权路 88 号 1 层</p>
+        </div>
+        <div>
+          <h4>营业时间</h4>
+          <p>每天 11:00 — 21:30</p>
+        </div>
+        <div>
+          <h4>订餐电话</h4>
+          <p>023-8888 6666</p>
+        </div>
+      </div>
+      <p class="foot-note">
+        © <span id="year">2026</span> 灶边小馆 · 本页面为菜品展示与交互演示，下单不会产生真实订单与扣款。
+      </p>
+    </div>
+  </footer>
+
+  <!-- ======================= 购物车 ======================= -->
+  <div class="overlay" id="overlay"></div>
+
+  <aside class="drawer" id="cartDrawer" aria-hidden="true" aria-label="购物车">
+    <div class="drawer-head">
+      <h3 id="drawerTitle">购物车</h3>
+      <div class="drawer-head-actions">
+        <button class="link-btn" id="clearCart" type="button" hidden>清空</button>
+        <button class="icon-btn" id="drawerClose" type="button" aria-label="关闭购物车">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-foot" id="drawerFoot"></div>
+  </aside>
+
+  <div class="mobile-bar" id="mobileBar">
+    <div class="mb-left">
+      <span class="mb-total" id="mobileTotal">¥0</span>
+      <span>已选 <b id="mobileCount">0</b> 件</span>
+    </div>
+    <button class="mb-go" type="button">去结算</button>
+  </div>
+
+  <!-- ======================= 下单成功 ======================= -->
+  <div class="modal-wrap" id="modalWrap" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="check-mark">
+        <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12.5l4.5 4.5L19 7"/>
+        </svg>
+      </div>
+      <h3 id="modalTitle">订单已提交</h3>
+      <p class="sub">后厨已收到，师傅正在开火。</p>
+      <div class="order-box">
+        <div><span>订单编号</span><b id="orderNo">—</b></div>
+        <div><span>菜品数量</span><b id="orderItems">—</b></div>
+        <div><span>实付金额</span><b class="amount" id="orderAmount">—</b></div>
+        <div><span>预计送达</span><b>约 30 分钟</b></div>
+      </div>
+      <p class="modal-note">演示页面，不会产生真实订单与扣款。</p>
+      <button class="btn primary block" id="continueBtn" type="button">继续点菜</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
